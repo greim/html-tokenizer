@@ -187,6 +187,7 @@ describe.only('html-tokenizer', function(){
       {html:'<script>\n<!--\n//-->\n</script>',events:[['open','script',{}],['text','\n<!--\n//-->\n'],['close','script'],['done']]},
       {html:'<script>alert("</script>")</script>',events:[['open','script',{}],['text','alert("'],['close','script'],['text','")'],['done']]},
       {html:'<script>alert("</scr"+"ipt>")</script>',events:[['open','script',{}],['text','alert("</scr"+"ipt>")'],['close','script'],['done']]},
+      {html:'<script defer>',events:[['open','script',{defer:''}],['close','script'],['done']]},
     ].forEach(function(item) {
       it('should parse '+JSON.stringify(item.html), function() {
         var events = parserCollector(item.html)
