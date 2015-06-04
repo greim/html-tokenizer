@@ -148,25 +148,25 @@ describe.only('html-tokenizer', function(){
   describe('parser', function(){
 
     ;[{html:'',events:[['done']]},
-      {html:'<br>',events:[['open','br',{}],['close','br'],['done']]},
-      {html:'<br/>',events:[['open','br',{}],['close','br'],['done']]},
-      {html:'<p>',events:[['open','p',{}],['close','p'],['done']]},
-      {html:'<p>hello',events:[['open','p',{}],['text','hello'],['close','p'],['done']]},
-      {html:'<p/>hello',events:[['open','p',{}],['close','p'],['text','hello'],['done']]},
-      {html:'<b><i><u>',events:[['open','b',{}],['open','i',{}],['open','u',{}],['close','u'],['close','i'],['close','b'],['done']]},
-      {html:'<b><i><u></u></i></b>',events:[['open','b',{}],['open','i',{}],['open','u',{}],['close','u'],['close','i'],['close','b'],['done']]},
-      {html:'<b><i>what<u></u></i></b>',events:[['open','b',{}],['open','i',{}],['text','what'],['open','u',{}],['close','u'],['close','i'],['close','b'],['done']]},
-      {html:'<br>foo</br>',events:[['open','br',{}],['close','br'],['text','foo'],['done']]},
-      {html:'<br class="xyz">',events:[['open','br',{class:'xyz'}],['close','br'],['done']]},
-      {html:'<br id=" foo-bar" class="xyz">',events:[['open','br',{id:' foo-bar',class:'xyz'}],['close','br'],['done']]},
-      {html:'<br id=\' foo-bar\' class=\'xyz\'>',events:[['open','br',{id:' foo-bar',class:'xyz'}],['close','br'],['done']]},
-      {html:'<br id=foo-bar class=xyz>',events:[['open','br',{id:'foo-bar',class:'xyz'}],['close','br'],['done']]},
-      {html:'<br id\n   \t=\r\nfoo-bar class\n=\txyz>',events:[['open','br',{id:'foo-bar',class:'xyz'}],['close','br'],['done']]},
-      {html:'<br>>>',events:[['open','br',{}],['close','br'],['text','>>'],['done']]},
-      {html:'<<<br>',events:[['text','<<'],['open','br',{}],['close','br'],['done']]},
-      {html:'<b></b></pre>',events:[['open','b',{}],['close','b'],['done']]},
-      {html:'<b></b></pre>hello',events:[['open','b',{}],['close','b'],['text','hello'],['done']]},
-      {html:'<b></pre>',events:[['open','b',{}],['close','b'],['done']]},
+      {html:'<br>',events:[['open','br',{},true],['close','br',true],['done']]},
+      {html:'<br/>',events:[['open','br',{},true],['close','br',true],['done']]},
+      {html:'<p>',events:[['open','p',{},false],['close','p',false],['done']]},
+      {html:'<p>hello',events:[['open','p',{},false],['text','hello'],['close','p',false],['done']]},
+      {html:'<p/>hello',events:[['open','p',{},true],['close','p',true],['text','hello'],['done']]},
+      {html:'<b><i><u>',events:[['open','b',{},false],['open','i',{},false],['open','u',{},false],['close','u',false],['close','i',false],['close','b',false],['done']]},
+      {html:'<b><i><u></u></i></b>',events:[['open','b',{},false],['open','i',{},false],['open','u',{},false],['close','u',false],['close','i',false],['close','b',false],['done']]},
+      {html:'<b><i>what<u></u></i></b>',events:[['open','b',{},false],['open','i',{},false],['text','what'],['open','u',{},false],['close','u',false],['close','i',false],['close','b',false],['done']]},
+      {html:'<br>foo</br>',events:[['open','br',{},true],['close','br',true],['text','foo'],['done']]},
+      {html:'<br class="xyz">',events:[['open','br',{class:'xyz'},true],['close','br',true],['done']]},
+      {html:'<br id=" foo-bar" class="xyz">',events:[['open','br',{id:' foo-bar',class:'xyz'},true],['close','br',true],['done']]},
+      {html:'<br id=\' foo-bar\' class=\'xyz\'>',events:[['open','br',{id:' foo-bar',class:'xyz'},true],['close','br',true],['done']]},
+      {html:'<br id=foo-bar class=xyz>',events:[['open','br',{id:'foo-bar',class:'xyz'},true],['close','br',true],['done']]},
+      {html:'<br id\n   \t=\r\nfoo-bar class\n=\txyz>',events:[['open','br',{id:'foo-bar',class:'xyz'},true],['close','br',true],['done']]},
+      {html:'<br>>>',events:[['open','br',{},true],['close','br',true],['text','>>'],['done']]},
+      {html:'<<<br>',events:[['text','<<'],['open','br',{},true],['close','br',true],['done']]},
+      {html:'<b></b></pre>',events:[['open','b',{},false],['close','b',false],['done']]},
+      {html:'<b></b></pre>hello',events:[['open','b',{},false],['close','b',false],['text','hello'],['done']]},
+      {html:'<b></pre>',events:[['open','b',{},false],['close','b',false],['done']]},
       {html:'<pre',events:[['done']]},
       {html:'<pre ',events:[['done']]},
       {html:'zz<pre',events:[['text','zz'],['done']]},
@@ -176,21 +176,21 @@ describe.only('html-tokenizer', function(){
       {html:'<!--x-->',events:[['comment','x'],['done']]},
       {html:'<!--\nx\n-->',events:[['comment','\nx\n'],['done']]},
       {html:'<!--x-- >',events:[['comment','x-- >'],['done']]},
-      {html:'<foo:bar>',events:[['open','foo:bar',{}],['close','foo:bar'],['done']]},
+      {html:'<foo:bar>',events:[['open','foo:bar',{},false],['close','foo:bar',false],['done']]},
       {html:'</foo:bar>',events:[['done']]},
-      {html:'<foo:bar></foo:bar>',events:[['open','foo:bar',{}],['close','foo:bar'],['done']]},
-      {html:'<foo:bar yes="yes"></foo:bar>',events:[['open','foo:bar',{yes:'yes'}],['close','foo:bar'],['done']]},
-      {html:'<script type="text/javascript"></script>',events:[['open','script',{type:'text/javascript'}],['close','script'],['done']]},
-      {html:'<script>alert("hello")</script>',events:[['open','script',{}],['text','alert("hello")'],['close','script'],['done']]},
-      {html:'<script>for (var n=10,i=0; i<n; i++);</script>',events:[['open','script',{}],['text','for (var n=10,i=0; i<n; i++);'],['close','script'],['done']]},
-      {html:'<script>\nfor (var n=10,i=0; i<n; i++);\n</script>',events:[['open','script',{}],['text','\nfor (var n=10,i=0; i<n; i++);\n'],['close','script'],['done']]},
-      {html:'<script><foo<foo<foo</script>',events:[['open','script',{}],['text','<foo<foo<foo'],['close','script'],['done']]},
-      {html:'<script><![CDATA[ blah >> ]]></script>',events:[['open','script',{}],['text','<![CDATA[ blah >> ]]>'],['close','script'],['done']]},
-      {html:'<script><!--//--></script>',events:[['open','script',{}],['text','<!--//-->'],['close','script'],['done']]},
-      {html:'<script>\n<!--\n//-->\n</script>',events:[['open','script',{}],['text','\n<!--\n//-->\n'],['close','script'],['done']]},
-      {html:'<script>alert("</script>")</script>',events:[['open','script',{}],['text','alert("'],['close','script'],['text','")'],['done']]},
-      {html:'<script>alert("</scr"+"ipt>")</script>',events:[['open','script',{}],['text','alert("</scr"+"ipt>")'],['close','script'],['done']]},
-      {html:'<script defer>',events:[['open','script',{defer:''}],['close','script'],['done']]},
+      {html:'<foo:bar></foo:bar>',events:[['open','foo:bar',{},false],['close','foo:bar',false],['done']]},
+      {html:'<foo:bar yes="yes"></foo:bar>',events:[['open','foo:bar',{yes:'yes'},false],['close','foo:bar',false],['done']]},
+      {html:'<script type="text/javascript"></script>',events:[['open','script',{type:'text/javascript'},false],['close','script',false],['done']]},
+      {html:'<script>alert("hello")</script>',events:[['open','script',{},false],['text','alert("hello")'],['close','script',false],['done']]},
+      {html:'<script>for (var n=10,i=0; i<n; i++);</script>',events:[['open','script',{},false],['text','for (var n=10,i=0; i<n; i++);'],['close','script',false],['done']]},
+      {html:'<script>\nfor (var n=10,i=0; i<n; i++);\n</script>',events:[['open','script',{},false],['text','\nfor (var n=10,i=0; i<n; i++);\n'],['close','script',false],['done']]},
+      {html:'<script><foo<foo<foo</script>',events:[['open','script',{},false],['text','<foo<foo<foo'],['close','script',false],['done']]},
+      {html:'<script><![CDATA[ blah >> ]]></script>',events:[['open','script',{},false],['text','<![CDATA[ blah >> ]]>'],['close','script',false],['done']]},
+      {html:'<script><!--//--></script>',events:[['open','script',{},false],['text','<!--//-->'],['close','script',false],['done']]},
+      {html:'<script>\n<!--\n//-->\n</script>',events:[['open','script',{},false],['text','\n<!--\n//-->\n'],['close','script',false],['done']]},
+      {html:'<script>alert("</script>")</script>',events:[['open','script',{},false],['text','alert("'],['close','script',false],['text','")'],['done']]},
+      {html:'<script>alert("</scr"+"ipt>")</script>',events:[['open','script',{},false],['text','alert("</scr"+"ipt>")'],['close','script',false],['done']]},
+      {html:'<script defer>',events:[['open','script',{defer:''},false],['close','script',false],['done']]},
     ].forEach(function(item) {
       it('should parse '+JSON.stringify(item.html), function() {
         var events = parserCollector(item.html)
@@ -207,18 +207,29 @@ describe.only('html-tokenizer', function(){
       var page = fs.readFileSync(__dirname + '/data/wikipedia.html', 'utf8')
       var parser = new Parser()
       var content = []
-      parser.on('open', function(name, atts) {
-        content.push('<' + name + attify(atts) + '>')
+      parser.on('open', function(name, atts, immediateClose) {
+        if (immediateClose) {
+          content.push('<' + name + attify(atts) + ' />')
+        } else {
+          content.push('<' + name + attify(atts) + '>')
+        }
       })
-      parser.on('close', function(name) {
-        content.push('</' + name + '>')
+      parser.on('close', function(name, immediateClose) {
+        if (!immediateClose) {
+          content.push('</' + name + '>')
+        }
       })
       parser.on('text', function(val) {
         content.push(val)
       })
+      parser.on('comment', function(val) {
+        content.push('<!--'+val+'-->')
+      })
       parser.parse(page)
       content = content.join('')
+      //console.log(content)
       //assert.strictEqual(content, page)
+      assert.ok(/hello<\/html>$/.test(content))
     })
   })
 })

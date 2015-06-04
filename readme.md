@@ -57,8 +57,8 @@ parser.parse('<foo></bar>')
  * `var parser = new Parser()`
  * `parser.on(event, fn)` - A parser is an EventEmitter. Events are emitted synchronously.
  * `parser.parse(html)` - Make sure you set up all your events before doing this!
- * event `"open" (name, attributes)` - A tag has opened
- * event `"close" (name)` - A tag has closed, either due to `</tag>` or `<tag/>`, or self-closers like `<br>`
+ * event `"open" (name, attributes, immediateClose)` - A tag has opened. `immediateClose` will be true if the tag self-closes.
+ * event `"close" (name, immediateClose)` - A tag has closed, either due to `</tag>` or `<tag/>`, or self-closers like `<br>`. `immediateClose` will be true if this close was due to self-closing.
  * event `"text" (text)` - Found some text
  * event `"comment" (commentText)` - Found a comment
  * event `"done" ()` - The parser finished

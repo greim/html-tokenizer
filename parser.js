@@ -21,16 +21,17 @@ function Parser() {
     var current = self._stack.peek()
     if (current && current.name === name) {
       self._stack.pop()
-      self.emit('close', current.name)
+      self.emit('close', current.name, false)
     }
   })
   tkzr.on('opening-tag-end', function(name, token) {
     var current = self._stack.peek()
+      , isSelfClosing = token === '/>' || !!SELF_CLOSING[name]
     current.complete = true
-    self.emit('open', current.name, current.attributes)
-    if (token === '/>' || SELF_CLOSING[name]) {
+    self.emit('open', current.name, current.attributes, isSelfClosing)
+    if (isSelfClosing) {
       self._stack.pop()
-      self.emit('close', current.name)
+      self.emit('close', current.name, true)
     }
   })
   tkzr.on('text', function(value) {
@@ -58,7 +59,7 @@ _.extend(Parser.prototype, {
     while (this._stack.length > 0) {
       var next = this._stack.pop()
       if (next.complete) {
-        this.emit('close', next.name)
+        this.emit('close', next.name, false)
       }
     }
     delete this._stack
