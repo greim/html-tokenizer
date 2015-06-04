@@ -208,12 +208,6 @@ var readAttribute = (function() {
 
 // -----------------------------------------------
 
-function getError(state, html, pos) {
-  return new Error('unexpected input ' + state + ' near ' + JSON.stringify(html.substring(pos - 20, pos + 20)))
-}
-
-// -----------------------------------------------
-
 var deentityify = (function() {
   var patt = /&(#?)([a-z0-9]+);/ig
   return function(text, map) {
