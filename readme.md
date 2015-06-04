@@ -22,7 +22,7 @@ tokenizer.tokenize('<foo></bar>')
 
 ## Parser Example
 
-A basic HTML parser is included in the project but you have to require it separately.
+A basic HTML parser is included in the project which you can require separately.
 
 ```js
 var Parser = require('html-tokenizer/parser')
@@ -65,9 +65,9 @@ parser.parse('<foo></bar>')
 
 ## Tokenizer Caveats
 
- * Does not handle `<![CDATA[]]>` (treats as text node)
- * Does not handle `<!doctype>` (treats as text node)
- * Does not handle `<? processing instructions ?>` (treats as text node)
+ * Does not handle `<![CDATA[]]>` (passes through as text)
+ * Does not handle `<!doctype>` (passes through as text)
+ * Does not handle `<? processing instructions ?>` (passes through as text)
  * Only converts a few `&entities;` by default
  * Won't handle every corner case identically to HTML5 browsers
  * Does not consume or produce Node.js streams
