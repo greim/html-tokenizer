@@ -1,10 +1,10 @@
 # HTML Tokenizer
 
-A small, super-fast, event-driven, fault-tolerant, html tag-soup tokenizer that works in node or browsers.
+A small, super-fast, event-driven, fault-tolerant, html tag-soup tokenizer that works in node or browsers via browserify.
 
-NOT spec conformant.
 Emits a stream of events telling you what things it finds in some purported HTML.
 Includes a parser implementation, which attempts to find any HTML *structure* lurking within that stream.
+Note: this is not spec conformant.
 
 ```
 npm install html-tokenizer
@@ -15,17 +15,19 @@ npm install html-tokenizer
 ```js
 var Tokenizer = require('html-tokenizer')
 var tokenizer = new Tokenizer()
-// add listeners here
+...add some listeners...
 tokenizer.tokenize('<p>hello</p>') // p tag start, p tag end, "hello", p tag close
 tokenizer.tokenize('<foo></bar>') // foo tag start, foo tag end, bar tag close
 ```
 
 ## Parser Example
 
+A basic HTML parser is included in the project but you have to require it separately.
+
 ```js
 var Parser = require('html-tokenizer/parser')
 var parser = new Parser()
-// add listeners here
+...add some listeners...
 parser.parse('<p>hello</p>') // open p tag, "hello", close p tag
 parser.parse('<foo></bar>') // open foo tag, close foo tag (discards </bar> tag)
 ```
