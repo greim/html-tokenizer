@@ -2,9 +2,7 @@
 
 A small, super-fast, event-driven, fault-tolerant, html tag-soup tokenizer that works in node or browsers via browserify.
 
-Emits a stream of events telling you what things it finds in some purported HTML.
-Includes a parser implementation, which attempts to find any HTML *structure* lurking within that stream.
-Note: this is not spec conformant.
+You pass it a string which is supposed to contain HTML, and it emits a stream of events telling you what things it finds.
 
 ```
 npm install html-tokenizer
