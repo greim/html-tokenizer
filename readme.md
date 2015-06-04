@@ -13,9 +13,11 @@ npm install html-tokenizer
 ```js
 var Tokenizer = require('html-tokenizer')
 var tokenizer = new Tokenizer()
-...add some listeners...
-tokenizer.tokenize('<p>hello</p>') // p tag start, p tag end, "hello", p tag close
-tokenizer.tokenize('<foo></bar>') // foo tag start, foo tag end, bar tag close
+tokenizer.on('opening-tag', function(name) { ... })
+tokenizer.on('closing-tag', function(name) { ... })
+...etc...
+tokenizer.tokenize('<p>hello</p>')
+tokenizer.tokenize('<foo></bar>')
 ```
 
 ## Parser Example
@@ -25,9 +27,11 @@ A basic HTML parser is included in the project but you have to require it separa
 ```js
 var Parser = require('html-tokenizer/parser')
 var parser = new Parser()
-...add some listeners...
-parser.parse('<p>hello</p>') // open p tag, "hello", close p tag
-parser.parse('<foo></bar>') // open foo tag, close foo tag (discards </bar> tag)
+parser.on('open', function(name, attributes) { ... })
+parser.on('close', function(name) { ... })
+...etc...
+parser.parse('<p>hello</p>')
+parser.parse('<foo></bar>')
 ```
 
 ## Tokenizer API
