@@ -10,9 +10,10 @@ var Tokenizer = require('./index')
   , util = require('util')
   , _ = require('lodash')
 
-function Parser() {
+function Parser(opts) {
+  opts = opts || {}
   EventEmitter.call(this)
-  var tkzr = this._tokenizer = new Tokenizer()
+  var tkzr = this._tokenizer = new Tokenizer(opts)
   var self = this
   tkzr.on('opening-tag', function(name) {
     self._stack.push({name:name,attributes:{}})

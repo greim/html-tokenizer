@@ -12,11 +12,11 @@ npm install html-tokenizer
 
 ```js
 var Tokenizer = require('html-tokenizer')
-var tokenizer = new Tokenizer()
+var tokenizer = new Tokenizer({entities:{copy:'\u00A9'}})
 tokenizer.on('opening-tag', function(name) { ... })
 tokenizer.on('closing-tag', function(name) { ... })
 ...etc...
-tokenizer.tokenize('<p>hello</p>')
+tokenizer.tokenize('<p>Copyright &copy; 1998</p>')
 tokenizer.tokenize('<foo></bar>')
 ```
 
@@ -28,35 +28,38 @@ The tokenizer makes no such guarantees.
 
 ```js
 var Parser = require('html-tokenizer/parser')
-var parser = new Parser()
+var parser = new Parser({entities:{copy:'\u00A9'}})
 parser.on('open', function(name, attributes) { ... })
 parser.on('close', function(name) { ... })
 ...etc...
-parser.parse('<p>hello</p>')
+parser.parse('<p>Copyright &copy; 1998</p>')
 parser.parse('<foo></bar>')
 ```
 
 ## Tokenizer API
 
- * `var Tokenizer = require('html-tokenizer')`
- * `var tokenizer = new Tokenizer(opts)`
-   * `opts.entities` All numeric entity codes are supported, but only a few common text ones are. If you wanted exhaustive support, you could add a map here like `{ copy: '©' }` which will be merged over the ones it already supports.
- * `tokenizer.on(event, fn)` - A tokenizer is an EventEmitter. Events are emitted synchronously.
- * `tokenizer.tokenize(html)` - Make sure you set up all your events before doing this!
- * `tokenizer.cancel()` - Abort the current parsing operation for whatever reason.
- * event `"opening-tag" (name)` - Found the beginning of a tag
- * event `"attribute" (name, value)` - Found an attribute
- * event `"text" (text)` - Found some text
- * event `"comment" (commentText)` - Found a comment
- * event `"opening-tag-end" (name, token)` - Found the end of an opening tag. `token` will either be `">"` or `"/>"` so between that and `name` you can make informed choices when writing your parser.
- * event `"closing-tag" (name)` - Found a closing tag like `</foo>`
- * event `"done" ()` - The tokenizer finished
- * event `"cancel" ()` - The tokenizer was canceled before it finished
+Name | Description
+------------------
+`var Tokenizer = require('html-tokenizer')` | This package exposes a constructor.
+`new Tokenizer(opts)` | The constructor takes an optional options object.
+`opts.entities` | This constructor option is an optional object mapping entities to character codes, e.g. `{copy:'\u00A9'}`. Gets merged over the default ones. By default only numeric codes are supported, plus a few common ones such as `&amp;`.
+`Tokenizer.defaultEntityMap` | The default set of entities.
+`tokenizer.on(event, fn)` | A tokenizer is an `EventEmitter`. Events are emitted synchronously during `tokenize()`.
+`tokenizer.tokenize(html)` | Can be called arbitrarily many times per instance. Make sure you set up all your events before doing this.
+`tokenizer.cancel()` | Abort the current parsing operation for whatever reason.
+event `"opening-tag" (name)` | Found the beginning of a tag
+event `"attribute" (name, value)` | Found an attribute
+event `"text" (text)` | Found some text
+event `"comment" (commentText)` | Found a comment
+event `"opening-tag-end" (name, token)` | Found the end of an opening tag. `token` will either be `">"` or `"/>"` so between that and `name` you can make informed choices when writing your parser.
+event `"closing-tag" (name)` | Found a closing tag like `</foo>`
+event `"done" ()` | The tokenizer finished
+event `"cancel" ()` | The tokenizer was canceled before it finished
 
 ## Parser API
 
  * `var Parser = require('html-tokenizer/parser')`
- * `var parser = new Parser()`
+ * `var parser = new Parser(opts)` - Options are passed to `Tokenizer()`.
  * `parser.on(event, fn)` - A parser is an EventEmitter. Events are emitted synchronously.
  * `parser.parse(html)` - Make sure you set up all your events before doing this!
  * event `"open" (name, attributes, immediateClose)` - A tag has opened. `immediateClose` will be true if the tag self-closes.
