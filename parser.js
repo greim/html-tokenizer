@@ -15,6 +15,9 @@ function Parser(opts) {
   EventEmitter.call(this)
   var tkzr = this._tokenizer = new Tokenizer(opts)
   var self = this
+  tkzr.on('start', function(name) {
+    self.emit('start')
+  })
   tkzr.on('opening-tag', function(name) {
     self._stack.push({name:name,attributes:{}})
   })

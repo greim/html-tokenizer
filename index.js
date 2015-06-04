@@ -75,6 +75,7 @@ _.extend(Tokenizer.prototype, {
 
   tokenize: function(html) {
     this._running = true
+    this._send('start')
     var pos = 0
       , state = states.inText
       , currentTag

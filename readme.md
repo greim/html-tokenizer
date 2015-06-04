@@ -54,11 +54,12 @@ Events are emitted during the `tokenize()` operation.
 
 Event | Signature | Description
 ----- | --------- | -----------
+start | () | Emitted once at beginning.
 opening-tag | (name) | Beginning of opening tag, like `<foo`.
 attribute | (name, value) | Only fires between "opening-tag" and "opening-tag-end" events.
+opening-tag-end | (name, token) | Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
 text | (text) | Text snippet.
 comment | (commentText) | Comment text.
-opening-tag-end | (name, token) | Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
 closing-tag | (name) | Closing tag, like `</foo>`.
 done | () | All done.
 cancel | () | Current `tokenize()` run was canceled before it finished.
@@ -79,10 +80,11 @@ Events are emitted during the `parse()` operation.
 
 Event | Signature | Description
 ----- | --------- | -----------
+start | () | Emitted once at beginning.
 open | (name, attributes, selfClosing) | Opening tag. `selfClosing` will be true if this tag self-closes.
-close | (name, selfClosing) | Closing tag. `selfClosing` will be true if this was a self-closing tag.
 text | (text) | Text snippet.
 comment | (commentText) | Comment text snippet.
+close | (name, selfClosing) | Closing tag. `selfClosing` will be true if this was a self-closing tag.
 done | () | All done.
 
 ## Entities
