@@ -23,6 +23,8 @@ tokenizer.tokenize('<foo></bar>')
 ## Parser Example
 
 A basic HTML parser is included in the project which you can require separately.
+Instead of just telling you what things it finds, its reveals the tag structure of the document.
+The tokenizer makes no such guarantees.
 
 ```js
 var Parser = require('html-tokenizer/parser')
