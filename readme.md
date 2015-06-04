@@ -39,7 +39,7 @@ parser.parse('<foo></bar>')
 ## Tokenizer API
 
 Name | Description
-------------------
+---- | -----------
 `var Tokenizer = require('html-tokenizer')` | This package exposes a constructor.
 `new Tokenizer(opts)` | The constructor takes an optional options object.
 `opts.entities` | This constructor option is an optional object mapping entities to character codes, e.g. `{copy:'\u00A9'}`. Gets merged over the default ones. By default only numeric codes are supported, plus a few common ones such as `&amp;`.
