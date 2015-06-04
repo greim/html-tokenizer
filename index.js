@@ -11,9 +11,10 @@ var EventEmitter = require('events').EventEmitter
 
 // -----------------------------------------------
 
-function Tokenizer() {
+function Tokenizer(opts) {
+  opts = opts || {}
   EventEmitter.call(this)
-  this._entityMap = _.extend({}, Tokenizer.defaultEntityMap)
+  this._entityMap = _.extend({}, Tokenizer.defaultEntityMap, opts.entities)
 }
 
 util.inherits(Tokenizer, EventEmitter)

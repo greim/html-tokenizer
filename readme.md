@@ -37,11 +37,11 @@ parser.parse('<foo></bar>')
 ## Tokenizer API
 
  * `var Tokenizer = require('html-tokenizer')`
- * `var tokenizer = new Tokenizer()`
+ * `var tokenizer = new Tokenizer(opts)`
+   * `opts.entities` All numeric entity codes are supported, but only a few common text ones are. If you wanted exhaustive support, you could add a map here like `{ copy: '©' }` which will be merged over the ones it already supports.
  * `tokenizer.on(event, fn)` - A tokenizer is an EventEmitter. Events are emitted synchronously.
  * `tokenizer.tokenize(html)` - Make sure you set up all your events before doing this!
  * `tokenizer.cancel()` - Abort the current parsing operation for whatever reason.
- * `tokenizer.entities(map)` - All numeric entity codes are supported, but only a few common text ones are. If you wanted exhaustive support, you could add a map here like `{ copy: '©' }` which will be merged over the ones it already supports.
  * event `"opening-tag" (name)` - Found the beginning of a tag
  * event `"attribute" (name, value)` - Found an attribute
  * event `"text" (text)` - Found some text

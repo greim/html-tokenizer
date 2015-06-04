@@ -91,11 +91,7 @@ describe.only('html-tokenizer', function(){
     {html:'<script>alert("</scr"+"ipt>")</script>',tokens:[['opening-tag','script'],['opening-tag-end','script','>'],['text','alert("</scr"+"ipt>")'],['closing-tag','script'],['done']]},
   ].forEach(function(item) {
     it('should tokenize ' + JSON.stringify(item.html) + (item.entities?' with entities':''), function() {
-      var result = collector(item.html, function(tkzr) {
-        if (item.entities) {
-          tkzr.entities(item.entities)
-        }
-      })
+      var result = collector(item.html, null, item.entities)
       //console.log(JSON.stringify(result))
       //console.log(JSON.stringify(item.tokens))
       assert.deepEqual(result, item.tokens)
@@ -248,18 +244,18 @@ function parserCollector(html) {
   return result
 }
 
-function collector(html, cb) {
+function collector(html, cb, entities) {
   var result = [];
   var tkzr = makeTokListener(function(args) {
     result.push(args)
-  })
+  }, entities)
   if (cb) { cb(tkzr) }
   tkzr.tokenize(html)
   return result
 }
 
-function makeTokListener(cb) {
-  var tkzr = new Tokenizer()
+function makeTokListener(cb, entities) {
+  var tkzr = new Tokenizer({entities:entities})
   ;['opening-tag','attribute','text','comment','opening-tag-end','closing-tag','done','cancel'].forEach(function(ev) {
     tkzr.on(ev, function() {
       var args = [].slice.call(arguments)
