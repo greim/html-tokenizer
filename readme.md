@@ -50,10 +50,12 @@ tokenizer.cancel() | Abort the current parsing operation for whatever reason.
 
 ### Events
 
+Events are emitted during the `tokenize()` operation.
+
 Event | Signature | Description
 ----- | --------- | -----------
 opening-tag | (name) | Beginning of opening tag, like `<foo`.
-attribute | (name, value) | A single attribute.
+attribute | (name, value) | Only fires between "opening-tag" and "opening-tag-end" events.
 text | (text) | Text snippet.
 comment | (commentText) | Comment text.
 opening-tag-end | (name, token) | Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
@@ -73,10 +75,12 @@ parser.parse(html) | Can be called arbitrarily many times per instance.
 
 ### Events
 
+Events are emitted during the `parse()` operation.
+
 Event | Signature | Description
 ----- | --------- | -----------
-open | (name, attributes, immediateClose) | Opening tag. `immediateClose` will be true if tag self-closes.
-close | (name, immediateClose) | Closing tag. `immediateClose` will be true if it's a self-close.
+open | (name, attributes, selfClosing) | Opening tag. `selfClosing` will be true if this tag self-closes.
+close | (name, selfClosing) | Closing tag. `selfClosing` will be true if this was a self-closing tag.
 text | (text) | Text snippet.
 comment | (commentText) | Comment text snippet.
 done | () | All done.
