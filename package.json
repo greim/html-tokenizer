@@ -1,0 +1,33 @@
+{
+  "name": "html-tokenizer",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/greim/html-tokenizer"
+  },
+  "bugs": {
+    "url": "https://github.com/greim/html-tokenizer/issues"
+  },
+  "description": "Small, fast, event-driven, fault-tolerant html tokenizer. Works in node or browsers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/.bin/mocha --harmony"
+  },
+  "keywords": [
+    "html",
+    "tokenize",
+    "tokenizer",
+    "tokenization",
+    "parser",
+    "parsing",
+    "event"
+  ],
+  "author": "gregreimer@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^3.9.3"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}
