@@ -85,6 +85,18 @@ text | (text) | Text snippet.
 comment | (commentText) | Comment text snippet.
 done | () | All done.
 
+## Entities
+
+`Tokenizer()` and `Parser()` take an `options.entities` object in order to broaden the set of supported HTML character entities.
+Exhaustive support can be added, however for browser-based apps this pulls in a large-ish file.
+Thus, exhaustive entity support must be required separately.
+
+```js
+var Parser = require('html-tokenizer/parser')
+var entityMap = require('html-tokenizer/entity-map')
+new Parser({ entities: entityMap })
+```
+
 ## Tokenizer Caveats
 
  * Does not handle `<![CDATA[]]>` (passes through as text)

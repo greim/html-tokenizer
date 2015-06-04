@@ -9,6 +9,7 @@ var Tokenizer = require('../index')
   , Parser = require('../parser')
   , assert = require('assert')
   , fs = require('fs')
+  , entityMap = require('../entity-map')
 
 describe.only('html-tokenizer', function(){
   ;[{html:'',tokens:[['done']]},
@@ -141,6 +142,18 @@ describe.only('html-tokenizer', function(){
     assert.strictEqual(tkzr._running, undefined)
   })
 
+  it('should expose more entities', function() {
+
+    var tkzr = new Tokenizer({entities:entityMap})
+      , ran = false
+    tkzr.on('text', function(text) {
+      assert.strictEqual(text, '\u00B0')
+      ran = true
+    })
+    tkzr.tokenize('&deg;')
+    assert.ok(ran, 'did not run')
+  })
+
   describe('parser', function(){
 
     ;[{html:'',events:[['done']]},
@@ -192,6 +205,17 @@ describe.only('html-tokenizer', function(){
         var events = parserCollector(item.html)
         assert.deepEqual(events, item.events)
       })
+    })
+
+    it('should pass through options', function() {
+      var parser = new Parser({entities:entityMap})
+        , ran = false
+      parser.on('text', function(text) {
+        assert.strictEqual(text, '\u00B0')
+        ran = true
+      })
+      parser.parse('&deg;')
+      assert.ok(ran, 'did not run')
     })
 
     it('should parse a wikipedia page', function() {
