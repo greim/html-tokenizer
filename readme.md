@@ -40,41 +40,41 @@ parser.parse('<foo></bar>')
 
 Name | Description
 ---- | -----------
-`var Tokenizer = require('html-tokenizer')` | Module exports a constructor.
-`new Tokenizer(opts)` | Constructor takes options (optional).
-`opts.entities` | This constructor option is an optional object mapping entities to character codes, e.g. `{copy:'\u00A9'}`. Gets merged over the default ones. By default only numeric codes are supported, plus a few common ones such as `&amp;`.
-`Tokenizer.defaultEntityMap` | The default set of entities.
-`tokenizer.on(event, fn)` | A tokenizer is an `EventEmitter`. Events are emitted synchronously during `tokenize()`.
-`tokenizer.tokenize(html)` | Can be called arbitrarily many times per instance. Make sure you set up all your events before doing this.
-`tokenizer.cancel()` | Abort the current parsing operation for whatever reason.
+var Tokenizer = require('html-tokenizer') | Module exports a constructor.
+new Tokenizer(opts) | Constructor takes options (optional).
+opts.entities | This constructor option is an optional object mapping entities to character codes, e.g. `{copy:'\u00A9'}`. Gets merged over the default ones. By default only numeric codes are supported, plus a few common ones such as `&amp;`.
+Tokenizer.defaultEntityMap | The default set of entities.
+tokenizer.on(event, fn) | A tokenizer is an `EventEmitter`. Events are emitted synchronously during `tokenize()`.
+tokenizer.tokenize(html) | Can be called arbitrarily many times per instance. Make sure you set up all your events before doing this.
+tokenizer.cancel() | Abort the current parsing operation for whatever reason.
 
 Event | Signature | Description
 ----- | --------- | -----------
-`"opening-tag"` | `(name)` | Found the beginning of a tag
-`"attribute"` | `(name,value)` | Found an attribute
-`"text"` | `(text)` | Found some text
-`"comment"` | `(commentText)` | Found a comment
-`"opening-tag-end"` | `(name,token)` | Found the end of an opening tag. `token` will either be `">"` or `"/>"` so between that and `name` you can make informed choices when writing your parser.
-`"closing-tag"` | `(name)` | Found a closing tag like `</foo>`
-`"done"` | `()` | The tokenizer finished
-`"cancel"` | `()` | The tokenizer was canceled before it finished
+opening-tag | (name) | Found the beginning of a tag
+attribute | (name,value) | Found an attribute
+text | (text) | Found some text
+comment | (commentText) | Found a comment
+opening-tag-end | (name,token) | Found the end of an opening tag. `token` will either be `">"` or `"/>"` so between that and `name` you can make informed choices when writing your parser.
+closing-tag | (name) | Found a closing tag like `</foo>`
+done | () | The tokenizer finished
+cancel | () | The tokenizer was canceled before it finished
 
 ## Parser API
 
 Name | Description
 ---- | -----------
-`var Parser = require('html-tokenizer/parser')` | Module exports a constructor.
-`var parser = new Parser(opts)` | Constructor takes options (optional). Relevant options are passed to `Tokenizer()`.
-`parser.on(event, fn)` | A parser is an `EventEmitter`. Events are emitted synchronously during `parse()`.
-`parser.parse(html)` | Can be called arbitrarily many times per instance. Make sure you set up all your events before doing this.
+var Parser = require('html-tokenizer/parser') | Module exports a constructor.
+var parser = new Parser(opts) | Constructor takes options (optional). Relevant options are passed to `Tokenizer()`.
+parser.on(event, fn) | A parser is an `EventEmitter`. Events are emitted synchronously during `parse()`.
+parser.parse(html) | Can be called arbitrarily many times per instance. Make sure you set up all your events before doing this.
 
 Event | Signature | Description
 ----- | --------- | -----------
-`"open"` | `(name,attributes,immediateClose)` | A tag has opened. `immediateClose` will be true if the tag self-closes.
-`"close"` | `(name,immediateClose)` | A tag has closed, either due to `</tag>` or `<tag/>`, or self-closers like `<br>`. `immediateClose` will be true if this close was due to self-closing.
-`"text"` | `(text)` | Found some text
-`"comment"` | `(commentText)` | Found a comment
-`"done"` | `()` | The parser finished
+open | (name,attributes,immediateClose) | A tag has opened. `immediateClose` will be true if the tag self-closes.
+close | (name,immediateClose) | A tag has closed, either due to `</tag>` or `<tag/>`, or self-closers like `<br>`. `immediateClose` will be true if this close was due to self-closing.
+text | (text) | Found some text
+comment | (commentText) | Found a comment
+done | () | The parser finished
 
 ## Tokenizer Caveats
 
