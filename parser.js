@@ -23,17 +23,30 @@ function Parser(opts) {
   })
   tkzr.on('closing-tag', function(name) {
     var current = self._stack.peek()
-    if (current && current.name === name) {
-      self._stack.pop()
-      self.emit('close', current.name, false)
+    if (current) {
+      if (current.name === name) {
+        self._stack.pop()
+        self.emit('close', current.name, false)
+      } else {
+        var parent = self._stack.peek(1)
+        if (parent && parent.name === name && isClosedByParent(current)) {
+          self._stack.pop()
+          self.emit('close', current.name, false)
+        }
+      }
     }
   })
   tkzr.on('opening-tag-end', function(name, token) {
     var current = self._stack.peek()
-      , isSelfClosing = token === '/>' || !!SELF_CLOSING[name]
+      , parent = self._stack.peek(1)
+      , isSelfClose = token === '/>' || isSelfClosing(name)
+    if (parent && isClosedBy(parent.name, current.name)) {
+      self._stack.nip(1)
+      self.emit('close', parent.name, false)
+    }
     current.complete = true
-    self.emit('open', current.name, current.attributes, isSelfClosing)
-    if (isSelfClosing) {
+    self.emit('open', current.name, current.attributes, isSelfClose)
+    if (isSelfClose) {
       self._stack.pop()
       self.emit('close', current.name, true)
     }
@@ -72,33 +85,66 @@ _.extend(Parser.prototype, {
 })
 
 var makeStack = (function() {
-  function peek() {
-    return this[this.length - 1]
+  function peek(n) {
+    n = n || 0
+    return this[this.length - (n + 1)]
+  }
+  function nip(n) {
+    n = n || 0
+    this.splice(this.length - (n + 1), 1)
   }
   return function() {
     var stack = []
     stack.peek = peek
+    stack.nip = nip
     return stack
   }
 })()
 
-var SELF_CLOSING = {
-  area: true,
-  base: true,
-  br: true,
-  col: true,
-  command: true,
-  embed: true,
-  hr: true,
-  img: true,
-  input: true,
-  keygen: true,
-  link: true,
-  meta: true,
-  param: true,
-  source: true,
-  track: true,
-  wbr: true,
+var isSelfClosing = (function() {
+  var table = makeLookup('area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr')
+  return function(closee) {
+    return !!table[closee]
+  }
+})()
+
+var isClosedBy = (function() {
+  var empty = {}
+  var table = {
+    p: makeLookup('address,article,aside,blockquote,dir,div,dl,fieldset,footer,form,h1,h2,h3,h4,h5,h6,header,hr,menu,nav,ol,p,pre,section,table,ul'),
+    li: makeLookup('li'),
+    dt: makeLookup('dt,dd'),
+    dd: makeLookup('dt,dd'),
+    rb: makeLookup('rb,rt,rtc,rp'),
+    rt: makeLookup('rb,rt,rtc,rp'),
+    rtc: makeLookup('rb,rtc,rp'),
+    rp: makeLookup('rb,rt,rtc,rp'),
+    optgroup: makeLookup('optgroup'),
+    option: makeLookup('option'),
+    thead: makeLookup('tbody,tfoot'),
+    tbody: makeLookup('tbody,tfoot'),
+    tfoot: makeLookup('tbody'),
+    tr: makeLookup('tr'),
+    td: makeLookup('td,th'),
+    th: makeLookup('td,th'),
+  }
+  return function(closee, closer) {
+    var lookup = table[closee] || empty
+    return !!lookup[closer]
+  }
+})()
+
+var isClosedByParent = (function() {
+  var table = makeLookup('p,li,dd,rb,rt,rtc,rp,optgroup,option,tbody,tfoot,tr,td,th')
+  return function(closee) {
+    return !!table[closee]
+  }
+})()
+
+function makeLookup(str) {
+  var obj = {}
+  str.split(',').forEach(function(x) { obj[x] = true })
+  return obj
 }
 
 module.exports = Parser

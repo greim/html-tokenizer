@@ -202,6 +202,9 @@ describe('html-tokenizer', function(){
       {html:'<script>alert("</scr"+"ipt>")</script>',events:[['start'],['open','script',{},false],['text','alert("</scr"+"ipt>")'],['close','script',false],['done']]},
       {html:'<script defer>',events:[['start'],['open','script',{defer:''},false],['close','script',false],['done']]},
       {html:'<foo<foo<foo/>',events:[['start'],['open','foo',{},true],['close','foo',true],['done']]},
+      {html:'<foo<foo<foo/>>>',events:[['start'],['open','foo',{},true],['close','foo',true],['text','>>'],['done']]},
+      {html:'<p><p>',events:[['start'],['open','p',{},false],['close','p',false],['open','p',{},false],['close','p',false],['done']]},
+      {html:'<div><p></div>',events:[['start'],['open','div',{},false],['open','p',{},false],['close','p',false],['close','div',false],['done']]},
     ].forEach(function(item) {
       (item.only?it.only:it)('should parse '+JSON.stringify(item.html), function() {
         var events = parserCollector(item.html)
