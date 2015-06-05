@@ -91,6 +91,7 @@ describe('html-tokenizer', function(){
     {html:'<script>\nfor (var n=10,i=0; i<n; i++);\n</script>',events:'start,opening-tag,script,opening-tag-end,script,>,text,\nfor (var n=10,i=0; i<n; i++);\n,closing-tag,script,done'},
     {html:'<script>alert("</script>")</script>',events:'start,opening-tag,script,opening-tag-end,script,>,text,alert(",closing-tag,script,text,"),closing-tag,script,done'},
     {html:'<script>alert("</scr"+"ipt>")</script>',events:'start,opening-tag,script,opening-tag-end,script,>,text,alert("</scr"+"ipt>"),closing-tag,script,done'},
+    {html:'<div><p></div><b>',events:'start,opening-tag,div,opening-tag-end,div,>,opening-tag,p,opening-tag-end,p,>,closing-tag,div,opening-tag,b,opening-tag-end,b,>,done'},
   ].forEach(function(item) {
     (item.only?it.only:it)('should tokenize ' + JSON.stringify(item.html) + (item.entities?' with entities':''), function() {
       var result = collector(item.html, null, item.entities)
@@ -203,8 +204,192 @@ describe('html-tokenizer', function(){
       {html:'<script defer>',events:'start,open,script,{"defer":""},false,close,script,false,done'},
       {html:'<foo<foo<foo/>',events:'start,open,foo,{},true,close,foo,true,done'},
       {html:'<foo<foo<foo/>>>',events:'start,open,foo,{},true,close,foo,true,text,>>,done'},
+
+      //An li element's end tag may be omitted if the li element is immediately followed by another li element or if there is no more content in the parent element.
+      {html:'<ul><li></li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,done'},
+      // ----------------------
+      {html:'<ul><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,done'},
+      {html:'<ul><li><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,li,{},false,close,li,false,close,ul,false,done'},
+      {html:'<ul><li>a<li>b</ul>',events:'start,open,ul,{},false,open,li,{},false,text,a,close,li,false,open,li,{},false,text,b,close,li,false,close,ul,false,done'},
+
+      //A dt element's end tag may be omitted if the dt element is immediately followed by another dt element or a dd element.
+      {html:'<dl><dt></dt><dd></dd></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      // ----------------------
+      {html:'<dl><dt><dd></dd></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      {html:'<dl><dt><dt></dt></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dt,{},false,close,dt,false,close,dl,false,done'},
+
+      //A dd element's end tag may be omitted if the dd element is immediately followed by another dd element or a dt element, or if there is no more content in the parent element.
+      {html:'<dl><dd></dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      // ----------------------
+      {html:'<dl><dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      {html:'<dl><dd><dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      {html:'<dl><dd><dt></dt></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dt,{},false,close,dt,false,close,dl,false,done'},
+
+      //A p element's end tag may be omitted if the p element is immediately followed by an address, article, aside, blockquote, div, dl, fieldset, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, main, nav, ol, p, pre, section, table, ul, or if there is no more content in the parent element and the parent element is not an a element.
+      {html:'<div><p></p></div><b>',events:'start,open,div,{},false,open,p,{},false,close,p,false,close,div,false,open,b,{},false,close,b,false,done'},
+      {html:'<p></p><p></p>',events:'start,open,p,{},false,close,p,false,open,p,{},false,close,p,false,done'},
+      {html:'<p><a>',events:'start,open,p,{},false,open,a,{},false,close,a,false,close,p,false,done'},
+      {html:'<div><a></div><a>',events:'start,open,div,{},false,open,a,{},false,open,a,{},false,close,a,false,close,a,false,close,div,false,done'},
+      // ----------------------
+      {html:'<div><p></div><b>',events:'start,open,div,{},false,open,p,{},false,close,p,false,close,div,false,open,b,{},false,close,b,false,done'},
+      {html:'<p><address>',events:'start,open,p,{},false,close,p,false,open,address,{},false,close,address,false,done'},
+      {html:'<p><article>',events:'start,open,p,{},false,close,p,false,open,article,{},false,close,article,false,done'},
+      {html:'<p><aside>',events:'start,open,p,{},false,close,p,false,open,aside,{},false,close,aside,false,done'},
+      {html:'<p><blockquote>',events:'start,open,p,{},false,close,p,false,open,blockquote,{},false,close,blockquote,false,done'},
+      {html:'<p><div>',events:'start,open,p,{},false,close,p,false,open,div,{},false,close,div,false,done'},
+      {html:'<p><dl>',events:'start,open,p,{},false,close,p,false,open,dl,{},false,close,dl,false,done'},
+      {html:'<p><fieldset>',events:'start,open,p,{},false,close,p,false,open,fieldset,{},false,close,fieldset,false,done'},
+      {html:'<p><footer>',events:'start,open,p,{},false,close,p,false,open,footer,{},false,close,footer,false,done'},
+      {html:'<p><form>',events:'start,open,p,{},false,close,p,false,open,form,{},false,close,form,false,done'},
+      {html:'<p><h1>',events:'start,open,p,{},false,close,p,false,open,h1,{},false,close,h1,false,done'},
+      {html:'<p><h2>',events:'start,open,p,{},false,close,p,false,open,h2,{},false,close,h2,false,done'},
+      {html:'<p><h3>',events:'start,open,p,{},false,close,p,false,open,h3,{},false,close,h3,false,done'},
+      {html:'<p><h4>',events:'start,open,p,{},false,close,p,false,open,h4,{},false,close,h4,false,done'},
+      {html:'<p><h5>',events:'start,open,p,{},false,close,p,false,open,h5,{},false,close,h5,false,done'},
+      {html:'<p><h6>',events:'start,open,p,{},false,close,p,false,open,h6,{},false,close,h6,false,done'},
+      {html:'<p><header>',events:'start,open,p,{},false,close,p,false,open,header,{},false,close,header,false,done'},
+      {html:'<p><hgroup>',events:'start,open,p,{},false,close,p,false,open,hgroup,{},false,close,hgroup,false,done'},
+      {html:'<p><hr>',events:'start,open,p,{},false,close,p,false,open,hr,{},true,close,hr,true,done'},
+      {html:'<p><main>',events:'start,open,p,{},false,close,p,false,open,main,{},false,close,main,false,done'},
+      {html:'<p><nav>',events:'start,open,p,{},false,close,p,false,open,nav,{},false,close,nav,false,done'},
+      {html:'<p><ol>',events:'start,open,p,{},false,close,p,false,open,ol,{},false,close,ol,false,done'},
       {html:'<p><p>',events:'start,open,p,{},false,close,p,false,open,p,{},false,close,p,false,done'},
-      {html:'<div><p></div>',events:'start,open,div,{},false,open,p,{},false,close,p,false,close,div,false,done'},
+      {html:'<p><pre>',events:'start,open,p,{},false,close,p,false,open,pre,{},false,close,pre,false,done'},
+      {html:'<p><section>',events:'start,open,p,{},false,close,p,false,open,section,{},false,close,section,false,done'},
+      {html:'<p><table>',events:'start,open,p,{},false,close,p,false,open,table,{},false,close,table,false,done'},
+      {html:'<p><ul>',events:'start,open,p,{},false,close,p,false,open,ul,{},false,close,ul,false,done'},
+      {html:'<p><ul>',events:'start,open,p,{},false,close,p,false,open,ul,{},false,close,ul,false,done'},
+
+      //An rb element's end tag may be omitted if the rb element is immediately followed by an rb, rt, rtc or rp element, or if there is no more content in the parent element.
+      {html:'<rb></rb>a',events:'start,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rb></rb><rb></rb>a',events:'start,open,rb,{},false,close,rb,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rb></rb><rt></rt>a',events:'start,open,rb,{},false,close,rb,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rb></rb><rtc></rtc>a',events:'start,open,rb,{},false,close,rb,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rb></rb><rp></rp>a',events:'start,open,rb,{},false,close,rb,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rb></rb></x>a',events:'start,open,x,{},false,open,rb,{},false,close,rb,false,close,x,false,text,a,done'},
+      {html:'<x><rb><foo></x>a',events:'start,open,x,{},false,open,rb,{},false,open,foo,{},false,text,a,close,foo,false,close,rb,false,close,x,false,done'},
+      // ----------------------
+      {html:'<rb><rb></rb>a',events:'start,open,rb,{},false,close,rb,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rb><rt></rt>a',events:'start,open,rb,{},false,close,rb,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rb><rtc></rtc>a',events:'start,open,rb,{},false,close,rb,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rb><rp></rp>a',events:'start,open,rb,{},false,close,rb,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rb></x>a',events:'start,open,x,{},false,open,rb,{},false,close,rb,false,close,x,false,text,a,done'},
+
+      //An rt element's end tag may be omitted if the rt element is immediately followed by an rb, rt, rtc, or rp element, or if there is no more content in the parent element.
+      {html:'<rt></rt>a',events:'start,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rt></rt><rb></rb>a',events:'start,open,rt,{},false,close,rt,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rt></rt><rt></rt>a',events:'start,open,rt,{},false,close,rt,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rt></rt><rtc></rtc>a',events:'start,open,rt,{},false,close,rt,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rt></rt><rp></rp>a',events:'start,open,rt,{},false,close,rt,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rt></rt></x>a',events:'start,open,x,{},false,open,rt,{},false,close,rt,false,close,x,false,text,a,done'},
+      {html:'<x><rt><foo></x>a',events:'start,open,x,{},false,open,rt,{},false,open,foo,{},false,text,a,close,foo,false,close,rt,false,close,x,false,done'},
+      // ----------------------
+      {html:'<rt><rb></rb>a',events:'start,open,rt,{},false,close,rt,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rt><rt></rt>a',events:'start,open,rt,{},false,close,rt,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rt><rtc></rtc>a',events:'start,open,rt,{},false,close,rt,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rt><rp></rp>a',events:'start,open,rt,{},false,close,rt,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rt></x>a',events:'start,open,x,{},false,open,rt,{},false,close,rt,false,close,x,false,text,a,done'},
+
+      //An rtc element's end tag may be omitted if the rtc element is immediately followed by an rb, rtc or rp element, or if there is no more content in the parent element.
+      {html:'<rtc></rtc>a',events:'start,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rtc></rtc><rb></rb>a',events:'start,open,rtc,{},false,close,rtc,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rtc></rtc><rtc></rtc>a',events:'start,open,rtc,{},false,close,rtc,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rtc></rtc><rp></rp>a',events:'start,open,rtc,{},false,close,rtc,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rtc></rtc></x>a',events:'start,open,x,{},false,open,rtc,{},false,close,rtc,false,close,x,false,text,a,done'},
+      {html:'<x><rtc><foo></x>a',events:'start,open,x,{},false,open,rtc,{},false,open,foo,{},false,text,a,close,foo,false,close,rtc,false,close,x,false,done'},
+      // ----------------------
+      {html:'<rtc><rb></rb>a',events:'start,open,rtc,{},false,close,rtc,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rtc><rtc></rtc>a',events:'start,open,rtc,{},false,close,rtc,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rtc><rp></rp>a',events:'start,open,rtc,{},false,close,rtc,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rtc></x>a',events:'start,open,x,{},false,open,rtc,{},false,close,rtc,false,close,x,false,text,a,done'},
+
+      //An rp element's end tag may be omitted if the rp element is immediately followed by an rb, rt, rtc or rp element, or if there is no more content in the parent element.
+      {html:'<rp></rp>a',events:'start,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<rp></rp><rb></rb>a',events:'start,open,rp,{},false,close,rp,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rp></rp><rt></rt>a',events:'start,open,rp,{},false,close,rp,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rp></rp><rtc></rtc>a',events:'start,open,rp,{},false,close,rp,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rp></rp><rp></rp>a',events:'start,open,rp,{},false,close,rp,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rp></rp></x>a',events:'start,open,x,{},false,open,rp,{},false,close,rp,false,close,x,false,text,a,done'},
+      {html:'<x><rp><foo></x>a',events:'start,open,x,{},false,open,rp,{},false,open,foo,{},false,text,a,close,foo,false,close,rp,false,close,x,false,done'},
+      // ----------------------
+      {html:'<rp><rb></rb>a',events:'start,open,rp,{},false,close,rp,false,open,rb,{},false,close,rb,false,text,a,done'},
+      {html:'<rp><rt></rt>a',events:'start,open,rp,{},false,close,rp,false,open,rt,{},false,close,rt,false,text,a,done'},
+      {html:'<rp><rtc></rtc>a',events:'start,open,rp,{},false,close,rp,false,open,rtc,{},false,close,rtc,false,text,a,done'},
+      {html:'<rp><rp></rp>a',events:'start,open,rp,{},false,close,rp,false,open,rp,{},false,close,rp,false,text,a,done'},
+      {html:'<x><rp></x>a',events:'start,open,x,{},false,open,rp,{},false,close,rp,false,close,x,false,text,a,done'},
+
+      //An optgroup element's end tag may be omitted if the optgroup element is immediately followed by another optgroup element, or if there is no more content in the parent element.
+      {html:'<optgroup></optgroup><optgroup></optgroup>a',events:'start,open,optgroup,{},false,close,optgroup,false,open,optgroup,{},false,close,optgroup,false,text,a,done'},
+      {html:'<x><optgroup></optgroup></x>a',events:'start,open,x,{},false,open,optgroup,{},false,close,optgroup,false,close,x,false,text,a,done'},
+      {html:'<optgroup><x></x>a',events:'start,open,optgroup,{},false,open,x,{},false,close,x,false,text,a,close,optgroup,false,done'},
+      // ----------------------
+      {html:'<optgroup><optgroup></optgroup>a',events:'start,open,optgroup,{},false,close,optgroup,false,open,optgroup,{},false,close,optgroup,false,text,a,done'},
+      {html:'<x><optgroup></x>a',events:'start,open,x,{},false,open,optgroup,{},false,close,optgroup,false,close,x,false,text,a,done'},
+
+      //An option element's end tag may be omitted if the option element is immediately followed by another option element, or if it is immediately followed by an optgroup element, or if there is no more content in the parent element.
+      {html:'<option></option><option></option>a',events:'start,open,option,{},false,close,option,false,open,option,{},false,close,option,false,text,a,done'},
+      {html:'<option></option><optgroup></optgroup>a',events:'start,open,option,{},false,close,option,false,open,optgroup,{},false,close,optgroup,false,text,a,done'},
+      {html:'<x><option></option></x>a',events:'start,open,x,{},false,open,option,{},false,close,option,false,close,x,false,text,a,done'},
+      {html:'<option><x></x>a',events:'start,open,option,{},false,open,x,{},false,close,x,false,text,a,close,option,false,done'},
+      // ----------------------
+      {html:'<option><option></option>a',events:'start,open,option,{},false,close,option,false,open,option,{},false,close,option,false,text,a,done'},
+      {html:'<option><optgroup></optgroup>a',events:'start,open,option,{},false,close,option,false,open,optgroup,{},false,close,optgroup,false,text,a,done'},
+      {html:'<x><option></x>a',events:'start,open,x,{},false,open,option,{},false,close,option,false,close,x,false,text,a,done'},
+
+      //A thead element's end tag may be omitted if the thead element is immediately followed by a tbody or tfoot element.
+      {html:'<thead></thead><tbody></tbody>a',events:'start,open,thead,{},false,close,thead,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<thead></thead><tfoot></tfoot>a',events:'start,open,thead,{},false,close,thead,false,open,tfoot,{},false,close,tfoot,false,text,a,done'},
+      {html:'<thead><a></a>a',events:'start,open,thead,{},false,open,a,{},false,close,a,false,text,a,close,thead,false,done'},
+      // ----------------------
+      {html:'<thead><tbody></tbody>a',events:'start,open,thead,{},false,close,thead,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<thead><tfoot></tfoot>a',events:'start,open,thead,{},false,close,thead,false,open,tfoot,{},false,close,tfoot,false,text,a,done'},
+
+      //A tbody element's end tag may be omitted if the tbody element is immediately followed by a tbody or tfoot element, or if there is no more content in the parent element.
+      {html:'<tbody></tbody><tbody></tbody>a',events:'start,open,tbody,{},false,close,tbody,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<tbody></tbody><tfoot></tfoot>a',events:'start,open,tbody,{},false,close,tbody,false,open,tfoot,{},false,close,tfoot,false,text,a,done'},
+      {html:'<tbody><a></a>a',events:'start,open,tbody,{},false,open,a,{},false,close,a,false,text,a,close,tbody,false,done'},
+      {html:'<x><tbody></tbody></x>a',events:'start,open,x,{},false,open,tbody,{},false,close,tbody,false,close,x,false,text,a,done'},
+      // ----------------------
+      {html:'<tbody><tbody></tbody>a',events:'start,open,tbody,{},false,close,tbody,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<tbody><tfoot></tfoot>a',events:'start,open,tbody,{},false,close,tbody,false,open,tfoot,{},false,close,tfoot,false,text,a,done'},
+      {html:'<x><tbody></x>a',events:'start,open,x,{},false,open,tbody,{},false,close,tbody,false,close,x,false,text,a,done'},
+
+      //A tfoot element's end tag may be omitted if the tfoot element is immediately followed by a tbody element, or if there is no more content in the parent element.
+      {html:'<tfoot></tfoot><tbody></tbody>a',events:'start,open,tfoot,{},false,close,tfoot,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<tfoot><a></a>a',events:'start,open,tfoot,{},false,open,a,{},false,close,a,false,text,a,close,tfoot,false,done'},
+      {html:'<x><tfoot></tfoot></x>a',events:'start,open,x,{},false,open,tfoot,{},false,close,tfoot,false,close,x,false,text,a,done'},
+      // ----------------------
+      {html:'<tfoot><tbody></tbody>a',events:'start,open,tfoot,{},false,close,tfoot,false,open,tbody,{},false,close,tbody,false,text,a,done'},
+      {html:'<x><tfoot></x>a',events:'start,open,x,{},false,open,tfoot,{},false,close,tfoot,false,close,x,false,text,a,done'},
+
+      //A tr element's end tag may be omitted if the tr element is immediately followed by another tr element, or if there is no more content in the parent element.
+      {html:'<tr></tr><tr></tr>a',events:'start,open,tr,{},false,close,tr,false,open,tr,{},false,close,tr,false,text,a,done'},
+      {html:'<tr><a></a>a',events:'start,open,tr,{},false,open,a,{},false,close,a,false,text,a,close,tr,false,done'},
+      {html:'<x><tr></tr></x>a',events:'start,open,x,{},false,open,tr,{},false,close,tr,false,close,x,false,text,a,done'},
+      // ----------------------
+      {html:'<tr><tr></tr>a',events:'start,open,tr,{},false,close,tr,false,open,tr,{},false,close,tr,false,text,a,done'},
+      {html:'<x><tr></x>a',events:'start,open,x,{},false,open,tr,{},false,close,tr,false,close,x,false,text,a,done'},
+
+      //A td element's end tag may be omitted if the td element is immediately followed by a td or th element, or if there is no more content in the parent element.
+      {html:'<td></td><td></td>a',events:'start,open,td,{},false,close,td,false,open,td,{},false,close,td,false,text,a,done'},
+      {html:'<td></td><th></th>a',events:'start,open,td,{},false,close,td,false,open,th,{},false,close,th,false,text,a,done'},
+      {html:'<td><a></a>a',events:'start,open,td,{},false,open,a,{},false,close,a,false,text,a,close,td,false,done'},
+      {html:'<x><td></td></x>a',events:'start,open,x,{},false,open,td,{},false,close,td,false,close,x,false,text,a,done'},
+      // ----------------------
+      {html:'<td><td></td>a',events:'start,open,td,{},false,close,td,false,open,td,{},false,close,td,false,text,a,done'},
+      {html:'<td><th></th>a',events:'start,open,td,{},false,close,td,false,open,th,{},false,close,th,false,text,a,done'},
+      {html:'<x><td></x>a',events:'start,open,x,{},false,open,td,{},false,close,td,false,close,x,false,text,a,done'},
+
+      //A th element's end tag may be omitted if the th element is immediately followed by a td or th element, or if there is no more content in the parent element.
+      {html:'<th></th><td></td>a',events:'start,open,th,{},false,close,th,false,open,td,{},false,close,td,false,text,a,done'},
+      {html:'<th></th><th></th>a',events:'start,open,th,{},false,close,th,false,open,th,{},false,close,th,false,text,a,done'},
+      {html:'<th><a></a>a',events:'start,open,th,{},false,open,a,{},false,close,a,false,text,a,close,th,false,done'},
+      {html:'<x><th></th></x>a',events:'start,open,x,{},false,open,th,{},false,close,th,false,close,x,false,text,a,done'},
+      // ----------------------
+      {html:'<th><td></td>a',events:'start,open,th,{},false,close,th,false,open,td,{},false,close,td,false,text,a,done'},
+      {html:'<th><th></th>a',events:'start,open,th,{},false,close,th,false,open,th,{},false,close,th,false,text,a,done'},
+      {html:'<x><th></x>a',events:'start,open,x,{},false,open,th,{},false,close,th,false,close,x,false,text,a,done'},
+
     ].forEach(function(item) {
       (item.only?it.only:it)('should parse '+JSON.stringify(item.html), function() {
         var events = parserCollector(item.html)

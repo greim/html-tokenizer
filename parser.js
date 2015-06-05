@@ -15,27 +15,33 @@ function Parser(opts) {
   EventEmitter.call(this)
   var tkzr = this._tokenizer = new Tokenizer(opts)
   var self = this
+  // ----------------------
   tkzr.on('start', function(name) {
     self.emit('start')
   })
+  // ----------------------
   tkzr.on('opening-tag', function(name) {
     self._stack.push({name:name,attributes:{}})
   })
+  // ----------------------
   tkzr.on('closing-tag', function(name) {
     var current = self._stack.peek()
+      , parent = self._stack.peek(1)
     if (current) {
       if (current.name === name) {
         self._stack.pop()
         self.emit('close', current.name, false)
       } else {
-        var parent = self._stack.peek(1)
-        if (parent && parent.name === name && isClosedByParent(current)) {
+        if (parent && parent.name === name && isClosedByParent(current.name)) {
           self._stack.pop()
           self.emit('close', current.name, false)
+          self._stack.pop()
+          self.emit('close', parent.name, false)
         }
       }
     }
   })
+  // ----------------------
   tkzr.on('opening-tag-end', function(name, token) {
     var current = self._stack.peek()
       , parent = self._stack.peek(1)
@@ -51,18 +57,18 @@ function Parser(opts) {
       self.emit('close', current.name, true)
     }
   })
+  // ----------------------
   tkzr.on('text', function(value) {
     self.emit('text', value)
   })
+  // ----------------------
   tkzr.on('comment', function(value) {
     self.emit('comment', value)
   })
+  // ----------------------
   tkzr.on('attribute', function(name, value) {
     var current = self._stack.peek()
     current.attributes[name] = value
-  })
-  tkzr.on('error', function() {
-    tkzr.cancel()
   })
 }
 
@@ -111,7 +117,7 @@ var isSelfClosing = (function() {
 var isClosedBy = (function() {
   var empty = {}
   var table = {
-    p: makeLookup('address,article,aside,blockquote,dir,div,dl,fieldset,footer,form,h1,h2,h3,h4,h5,h6,header,hr,menu,nav,ol,p,pre,section,table,ul'),
+    p: makeLookup('address,article,aside,blockquote,div,dl,fieldset,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,hr,main,nav,ol,p,pre,section,table,ul'),
     li: makeLookup('li'),
     dt: makeLookup('dt,dd'),
     dd: makeLookup('dt,dd'),
@@ -120,7 +126,7 @@ var isClosedBy = (function() {
     rtc: makeLookup('rb,rtc,rp'),
     rp: makeLookup('rb,rt,rtc,rp'),
     optgroup: makeLookup('optgroup'),
-    option: makeLookup('option'),
+    option: makeLookup('option,optgroup'),
     thead: makeLookup('tbody,tfoot'),
     tbody: makeLookup('tbody,tfoot'),
     tfoot: makeLookup('tbody'),
