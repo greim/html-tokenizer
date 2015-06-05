@@ -11,7 +11,7 @@ var Tokenizer = require('../index')
   , fs = require('fs')
   , entityMap = require('../entity-map')
 
-describe.only('html-tokenizer', function(){
+describe('html-tokenizer', function(){
   ;[{html:'',tokens:[['start'],['done']]},
     {html:'hello',tokens:[['start'],['text','hello'],['done']]},
     {html:'<i>hello',tokens:[['start'],['opening-tag','i'],['opening-tag-end','i','>'],['text','hello'],['done']]},
@@ -60,8 +60,9 @@ describe.only('html-tokenizer', function(){
     {html:'</b></b>',tokens:[['start'],['closing-tag','b'],['closing-tag','b'],['done']]},
     {html:'<!doctype html><html>',tokens:[['start'],['text','<!doctype html>'],['opening-tag','html'],['opening-tag-end','html','>'],['done']]},
     {html:'<foo',tokens:[['start'],['opening-tag','foo'],['done']]},
-    {html:'<foo <foo',tokens:[['start'],['opening-tag','foo'],['done']]},
-    {html:'<foo <foo/> hello',tokens:[['start'],['opening-tag','foo'],['done']]},
+    {html:'<foo<bar',tokens:[['start'],['opening-tag','foo'],['opening-tag','bar'],['done']]},
+    {html:'<foo <foo',tokens:[['start'],['opening-tag','foo'],['text',' '],['opening-tag','foo'],['done']]},
+    {html:'<foo <foo/> hello',tokens:[['start'],['opening-tag','foo'],['text',' '],['opening-tag','foo'],['opening-tag-end','foo','/>'],['text',' hello'],['done']]},
     {html:'yes &amp; no',tokens:[['start'],['text','yes & no'],['done']]},
     {html:'yes &quot; no',tokens:[['start'],['text','yes " no'],['done']]},
     {html:'yes &lt; no',tokens:[['start'],['text','yes < no'],['done']]},
@@ -91,7 +92,7 @@ describe.only('html-tokenizer', function(){
     {html:'<script>alert("</script>")</script>',tokens:[['start'],['opening-tag','script'],['opening-tag-end','script','>'],['text','alert("'],['closing-tag','script'],['text','")'],['closing-tag','script'],['done']]},
     {html:'<script>alert("</scr"+"ipt>")</script>',tokens:[['start'],['opening-tag','script'],['opening-tag-end','script','>'],['text','alert("</scr"+"ipt>")'],['closing-tag','script'],['done']]},
   ].forEach(function(item) {
-    it('should tokenize ' + JSON.stringify(item.html) + (item.entities?' with entities':''), function() {
+    (item.only?it.only:it)('should tokenize ' + JSON.stringify(item.html) + (item.entities?' with entities':''), function() {
       var result = collector(item.html, null, item.entities)
       //console.log(JSON.stringify(result))
       //console.log(JSON.stringify(item.tokens))
@@ -177,7 +178,7 @@ describe.only('html-tokenizer', function(){
       {html:'<b></b></pre>hello',events:[['start'],['open','b',{},false],['close','b',false],['text','hello'],['done']]},
       {html:'<b></pre>',events:[['start'],['open','b',{},false],['close','b',false],['done']]},
       {html:'<pre',events:[['start'],['done']]},
-      {html:'<pre ',events:[['start'],['done']]},
+      {html:'<pre ',events:[['start'],['text',' '],['done']]},
       {html:'zz<pre',events:[['start'],['text','zz'],['done']]},
       {html:'< br>',events:[['start'],['text','< br>'],['done']]},
       {html:'</br>',events:[['start'],['done']]},
@@ -200,8 +201,9 @@ describe.only('html-tokenizer', function(){
       {html:'<script>alert("</script>")</script>',events:[['start'],['open','script',{},false],['text','alert("'],['close','script',false],['text','")'],['done']]},
       {html:'<script>alert("</scr"+"ipt>")</script>',events:[['start'],['open','script',{},false],['text','alert("</scr"+"ipt>")'],['close','script',false],['done']]},
       {html:'<script defer>',events:[['start'],['open','script',{defer:''},false],['close','script',false],['done']]},
+      {html:'<foo<foo>',events:[['start'],['open','foo',{},false],['close','foo',false],['done']]},
     ].forEach(function(item) {
-      it('should parse '+JSON.stringify(item.html), function() {
+      (item.only?it.only:it)('should parse '+JSON.stringify(item.html), function() {
         var events = parserCollector(item.html)
         assert.deepEqual(events, item.events)
       })

@@ -139,7 +139,7 @@ _.extend(Tokenizer.prototype, {
           this._send('opening-tag-end', currentTag, token)
           state = currentTag === 'script' ? states.inScript : states.inText
         } else {
-          break
+          state = states.inText
         }
       } else {
         break
