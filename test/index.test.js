@@ -207,24 +207,25 @@ describe('html-tokenizer', function(){
 
       //An li element's end tag may be omitted if the li element is immediately followed by another li element or if there is no more content in the parent element.
       {html:'<ul><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
-      {html:'<ul><li></li><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
+      {html:'<ul><li></li><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
       // ----------------------
-      {html:'<ul><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,done'},
-      {html:'<ul><li><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,li,{},false,close,li,false,close,ul,false,done'},
-      {html:'<ul><li>a<li>b</ul>',events:'start,open,ul,{},false,open,li,{},false,text,a,close,li,false,open,li,{},false,text,b,close,li,false,close,ul,false,done'},
+      {html:'<ul><li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
+      {html:'<ul><li><li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
+      {html:'<ul><li>a<li>b</ul>a',events:'start,open,ul,{},false,open,li,{},false,text,a,close,li,false,open,li,{},false,text,b,close,li,false,close,ul,false,text,a,done'},
 
       //A dt element's end tag may be omitted if the dt element is immediately followed by another dt element or a dd element.
-      {html:'<dl><dt></dt><dd></dd></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      {html:'<dl><dt></dt><dd></dd></dl>a',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
       // ----------------------
-      {html:'<dl><dt><dd></dd></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
-      {html:'<dl><dt><dt></dt></dl>',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dt,{},false,close,dt,false,close,dl,false,done'},
+      {html:'<dl><dt><dd></dd></dl>a',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
+      {html:'<dl><dt><dt></dt></dl>a',events:'start,open,dl,{},false,open,dt,{},false,close,dt,false,open,dt,{},false,close,dt,false,close,dl,false,text,a,done'},
 
       //A dd element's end tag may be omitted if the dd element is immediately followed by another dd element or a dt element, or if there is no more content in the parent element.
-      {html:'<dl><dd></dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,done'},
+      {html:'<dl><dd></dd></dl>a',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
+      {html:'<dl><dd></dd><dd></dd></dl>a',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
       // ----------------------
-      {html:'<dl><dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,done'},
-      {html:'<dl><dd><dd></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dd,{},false,close,dd,false,close,dl,false,done'},
-      {html:'<dl><dd><dt></dt></dl>',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dt,{},false,close,dt,false,close,dl,false,done'},
+      {html:'<dl><dd></dl>a',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
+      {html:'<dl><dd><dd></dl>a',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dd,{},false,close,dd,false,close,dl,false,text,a,done'},
+      {html:'<dl><dd><dt></dt></dl>a',events:'start,open,dl,{},false,open,dd,{},false,close,dd,false,open,dt,{},false,close,dt,false,close,dl,false,text,a,done'},
 
       //A p element's end tag may be omitted if the p element is immediately followed by an address, article, aside, blockquote, div, dl, fieldset, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, main, nav, ol, p, pre, section, table, ul, or if there is no more content in the parent element and the parent element is not an a element.
       {html:'<div><p></p></div><b>',events:'start,open,div,{},false,open,p,{},false,close,p,false,close,div,false,open,b,{},false,close,b,false,done'},
