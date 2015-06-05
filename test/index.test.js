@@ -206,7 +206,8 @@ describe('html-tokenizer', function(){
       {html:'<foo<foo<foo/>>>',events:'start,open,foo,{},true,close,foo,true,text,>>,done'},
 
       //An li element's end tag may be omitted if the li element is immediately followed by another li element or if there is no more content in the parent element.
-      {html:'<ul><li></li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,done'},
+      {html:'<ul><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
+      {html:'<ul><li></li><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
       // ----------------------
       {html:'<ul><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,done'},
       {html:'<ul><li><li></ul>',events:'start,open,ul,{},false,open,li,{},false,close,li,false,open,li,{},false,close,li,false,close,ul,false,done'},
