@@ -212,20 +212,25 @@ var readAttribute = (function() {
 
 var deentityify = (function() {
   var patt = /&(#?)([a-z0-9]+);/ig
-  return function(text, map) {
-    return text.replace(patt, function(ent, isNum, content) {
-      if (isNum) {
-        var num
-        if (content.charAt(0) === 'x') {
-          num = parseInt('0'+content, 16)
-        } else {
-          num = parseInt(content, 10)
-        }
-        return String.fromCharCode(num)
+    , map
+
+  function handler(ent, isNum, content) {
+    if (isNum) {
+      var num
+      if (content.charAt(0) === 'x') {
+        num = parseInt('0'+content, 16)
       } else {
-        return map[content] || ent
+        num = parseInt(content, 10)
       }
-    })
+      return String.fromCharCode(num)
+    } else {
+      return map[content] || ent
+    }
+  }
+
+  return function(text, aMap) {
+    map = aMap
+    return text.replace(patt, handler)
   }
 })()
 
