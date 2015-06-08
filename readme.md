@@ -108,4 +108,5 @@ new Parser({ entities: entityMap })
  * Does not handle `<? processing instructions ?>` (passes through as text)
  * Does not consume or produce Node.js streams
  * Performs best on clean markup
- * Doesn't intentionally throw
+ * Never intentionally throws
+ * All methods and events are synchronous
