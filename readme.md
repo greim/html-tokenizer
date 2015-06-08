@@ -15,12 +15,11 @@ If that bothers you, then what you probably want is a parser, not a tokenizer, s
 
 ```js
 var Tokenizer = require('html-tokenizer')
-var tokenizer = new Tokenizer({entities:{copy:'\u00A9'}})
+var tokenizer = new Tokenizer()
 tokenizer.on('opening-tag', function(name) { ... })
 tokenizer.on('closing-tag', function(name) { ... })
 ...etc...
-tokenizer.tokenize('<p>Copyright &copy; 1998</p>')
-tokenizer.tokenize('<foo></bar>')
+tokenizer.tokenize('<p>Hello</p>')
 ```
 
 ## Parser
@@ -32,12 +31,11 @@ Note, the corner-case parsing rules for HTML5 are quite complicated and this may
 
 ```js
 var Parser = require('html-tokenizer/parser')
-var parser = new Parser({entities:{copy:'\u00A9'}})
+var parser = new Parser()
 parser.on('open', function(name, attributes) { ... })
 parser.on('close', function(name) { ... })
 ...etc...
-parser.parse('<p>Copyright &copy; 1998</p>')
-parser.parse('<foo></bar>')
+parser.parse('<p>Hello</p>')
 ```
 
 ## Tokenizer API
@@ -45,10 +43,10 @@ parser.parse('<foo></bar>')
 Name | Description
 ---- | -----------
 var Tokenizer = require('html-tokenizer') | Module exports a constructor.
-new Tokenizer(opts) | Constructor takes options (optional).
+new Tokenizer(opts) | Constructor takes optional options.
 opts.entities | Constructor option. Entity => charcode map, e.g. `{copy:'\u00A9'}`. Merged over the defaults. By default only numeric codes are supported, plus a small subset of textual ones.
 Tokenizer.defaultEntityMap | Default set of entities.
-tokenizer.on(event, fn) | Events are emitted synchronously during `tokenize()`.
+tokenizer.on(event, fn) | Events listed below.
 tokenizer.tokenize(html) | Can be called arbitrarily many times per instance.
 tokenizer.cancel() | Abort the current parsing operation for whatever reason.
 
@@ -73,9 +71,9 @@ cancel | () | Current `tokenize()` run was canceled before it finished.
 Name | Description
 ---- | -----------
 var Parser = require('html-tokenizer/parser') | Module exports a constructor.
-var parser = new Parser(opts) | Constructor takes options (optional). Relevant options passed to `Tokenizer()`.
+var parser = new Parser(opts) | Constructor takes optional options. Relevant options passed to `Tokenizer()`.
 opts.entities | Constructor option. See above.
-parser.on(event, fn) | Events are emitted synchronously during `parse()`.
+parser.on(event, fn) | Events listed below.
 parser.parse(html) | Can be called arbitrarily many times per instance.
 
 ### Events
@@ -110,4 +108,5 @@ new Parser({ entities: entityMap })
  * Does not handle `<? processing instructions ?>` (passes through as text)
  * Does not consume or produce Node.js streams
  * Performs best on clean markup
- * Never intentionally throws
+ * Doesn't intentionally throw
+ * 
