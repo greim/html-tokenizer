@@ -11,7 +11,7 @@ npm install html-tokenizer
 
 A tokenizer emits a stream of events such as "this looks like an attribute" or "this looks like an opening tag," *however* these won't necessarily be well-formed.
 For example `<foo <foo` will produce two `opening-tag` events in a row.
-If that bothers you, then what you probably want is a parser, not a tokenizer.
+If that bothers you, then what you probably want is a parser, not a tokenizer, so keep scrolling down.
 
 ```js
 var Tokenizer = require('html-tokenizer')
