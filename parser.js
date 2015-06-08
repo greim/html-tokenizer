@@ -14,14 +14,15 @@ function Parser(opts) {
   opts = opts || {}
   EventEmitter.call(this)
   var tkzr = this._tokenizer = new Tokenizer(opts)
-  var self = this
+    , self = this
+    , pendingTag
   // ----------------------
   tkzr.on('start', function() {
     self.emit('start')
   })
   // ----------------------
   tkzr.on('opening-tag', function(name) {
-    self._stack.push({name:name,attributes:{}})
+    pendingTag = {name:name,attributes:{}}
   })
   // ----------------------
   tkzr.on('closing-tag', function(name) {
@@ -43,18 +44,17 @@ function Parser(opts) {
   })
   // ----------------------
   tkzr.on('opening-tag-end', function(name, token) {
-    var current = self._stack.peek()
-      , parent = self._stack.peek(1)
+    var mightBeClosed = self._stack.peek()
       , isSelfClose = token === '/>' || isSelfClosing(name)
-    if (parent && isClosedBy(parent.name, current.name)) {
-      self._stack.nip(1)
-      self.emit('close', parent.name, false)
-    }
-    current.complete = true
-    self.emit('open', current.name, current.attributes, isSelfClose)
-    if (isSelfClose) {
+    if (mightBeClosed && isClosedBy(mightBeClosed.name, pendingTag.name)) {
       self._stack.pop()
-      self.emit('close', current.name, true)
+      self.emit('close', mightBeClosed.name, false)
+    }
+    self.emit('open', pendingTag.name, pendingTag.attributes, isSelfClose)
+    if (isSelfClose) {
+      self.emit('close', pendingTag.name, true)
+    } else {
+      self._stack.push(pendingTag)
     }
   })
   // ----------------------
@@ -67,8 +67,7 @@ function Parser(opts) {
   })
   // ----------------------
   tkzr.on('attribute', function(name, value) {
-    var current = self._stack.peek()
-    current.attributes[name] = value
+    pendingTag.attributes[name] = value
   })
 }
 
@@ -81,9 +80,7 @@ _.extend(Parser.prototype, {
     this._tokenizer.tokenize(html)
     while (this._stack.length > 0) {
       var next = this._stack.pop()
-      if (next.complete) {
-        this.emit('close', next.name, false)
-      }
+      this.emit('close', next.name, false)
     }
     delete this._stack
     this.emit('done')
@@ -95,14 +92,9 @@ var makeStack = (function() {
     n = n || 0
     return this[this.length - (n + 1)]
   }
-  function nip(n) {
-    n = n || 0
-    this.splice(this.length - (n + 1), 1)
-  }
   return function() {
     var stack = []
     stack.peek = peek
-    stack.nip = nip
     return stack
   }
 })()
