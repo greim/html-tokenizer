@@ -103,14 +103,11 @@ var entityMap = require('html-tokenizer/entity-map')
 new Parser({ entities: entityMap })
 ```
 
-## Tokenizer Caveats
+## Other Notes
 
  * Does not handle `<![CDATA[]]>` (passes through as text)
  * Does not handle `<!doctype>` (passes through as text)
  * Does not handle `<? processing instructions ?>` (passes through as text)
- * Only converts a few `&entities;` by default
- * Won't handle every corner case identically to HTML5 browsers
  * Does not consume or produce Node.js streams
- * Mainly intended for client-side processing of small html snippets
- * On unrecoverable errors, finishes early rather than throwing
  * Performs best on clean markup
+ * Never intentionally throws
