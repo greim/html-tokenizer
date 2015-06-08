@@ -16,7 +16,7 @@ function Parser(opts) {
   var tkzr = this._tokenizer = new Tokenizer(opts)
   var self = this
   // ----------------------
-  tkzr.on('start', function(name) {
+  tkzr.on('start', function() {
     self.emit('start')
   })
   // ----------------------
