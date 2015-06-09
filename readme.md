@@ -53,6 +53,8 @@ The only currently supported constructor option is an `entities` object that map
 This is optional and provides a way to expand the set of entities supported by default.
 By default only numeric codes are supported, plus a small subset of textual ones found in `default-entity-map.json`.
 
+--------
+
 ### `on(event, handler)`
 
 ```js
@@ -74,7 +76,8 @@ Supported events:
  * **comment**         - *(text)*        - Comment text.
  * **closing-tag**     - *(name)*        - Closing tag, like `</foo>`.
  * **done**            - *()*            - All done.
- * **cancel**          - *()*            - Current `tokenize()` run was canceled before it finished.
+
+--------
 
 ### `tokenize(html)`
 
@@ -100,6 +103,8 @@ var parser = new Parser({
 The only currently supported constructor option is an `entities` object.
 It's passed directly to the underlying tokenizer (see above).
 
+--------
+
 ### `parser.on(event, handler)`
 
 ```js
@@ -120,6 +125,8 @@ Supported events:
  * **comment** - *(text)*                          - Comment text snippet.
  * **close**   - *(name, selfClosing)*             - Closing tag. `selfClosing` will be true if this was a self-closing tag.
  * **done**    - *()*                              - All done.
+
+--------
 
 ### `parser.parse(html)`
 
