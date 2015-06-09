@@ -39,60 +39,101 @@ parser.parse('<p>Hello</p>')
 
 ## Tokenizer API
 
-Name | Description
----- | -----------
-var Tokenizer = require('html-tokenizer') | Module exports a constructor.
-new Tokenizer(opts) | Constructor takes optional options.
-opts.entities | Constructor option. Entity => charcode map, e.g. `{copy:'\u00A9'}`. Merged over the defaults. By default only numeric codes are supported, plus a small subset of textual ones.
-Tokenizer.defaultEntityMap | Default set of entities.
-tokenizer.on(event, fn) | Events listed below.
-tokenizer.tokenize(html) | Can be called arbitrarily many times per instance.
-tokenizer.cancel() | Abort the current parsing operation for whatever reason.
+### `new Tokenizer(opts)`
 
-### Events
+```js
+var Tokenizer = require('html-tokenizer')
+var tokenizer = new Tokenizer({
+  entities: { copy: '\u00A9' }
+})
+tokenizer.parse('<p>copyright &copy; 1993</p>')
+```
 
+The only currently supported constructor option is an `entities` object that maps HTML entities to their unicode counterparts.
+This is optional and provides a way to expand the set of entities supported by default.
+By default only numeric codes are supported, plus a small subset of textual ones found in `default-entity-map.json`.
+
+### `on(event, handler)`
+
+```js
+tokenizer.on('opening-tag', function(name) {
+  // name === 'foo'
+})
+tokenizer.tokenize('<foo')
+```
+
+A tokenizer instance is an `EventEmitter`.
 Events are emitted during the `tokenize()` operation.
+Supported events:
 
-Event | Signature | Description
------ | --------- | -----------
-start | () | Emitted once at beginning.
-opening-tag | (name) | Beginning of opening tag, like `<foo`.
-attribute | (name, value) | Only fires between "opening-tag" and "opening-tag-end" events.
-opening-tag-end | (name, token) | Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
-text | (text) | Text snippet.
-comment | (commentText) | Comment text.
-closing-tag | (name) | Closing tag, like `</foo>`.
-done | () | All done.
-cancel | () | Current `tokenize()` run was canceled before it finished.
+ * **start**           - *()*            - Emitted once per tokenize run.
+ * **opening-tag**     - *(name)*        - Beginning of opening tag, like `<foo`.
+ * **attribute**       - *(name, value)* - Only fires between "opening-tag" and "opening-tag-end" events.
+ * **opening-tag-end** - *(name, token)* - Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
+ * **text**            - *(text)*        - Text snippet.
+ * **comment**         - *(text)*        - Comment text.
+ * **closing-tag**     - *(name)*        - Closing tag, like `</foo>`.
+ * **done**            - *()*            - All done.
+
+### `tokenize(html)`
+
+```js
+tokenizer.tokenize('<span>hi</span>')
+```
+
+`html` is a string.
+Can be called arbitrarily many times per instance.
+`start` and `done` are emmitted once per run.
 
 ## Parser API
 
-Name | Description
----- | -----------
-var Parser = require('html-tokenizer/parser') | Module exports a constructor.
-var parser = new Parser(opts) | Constructor takes optional options. Relevant options passed to `Tokenizer()`.
-opts.entities | Constructor option. See above.
-parser.on(event, fn) | Events listed below.
-parser.parse(html) | Can be called arbitrarily many times per instance.
+### `new Parser(opts)`
 
-### Events
+```js
+var Parser = require('html-tokenizer/parser')
+var parser = new Parser({
+  entities: { copy: '\u00A9', ... } // &copy; ...
+})
+```
 
+The only currently supported constructor option is an `entities` object.
+It's passed directly to the underlying tokenizer (see above).
+
+### `parser.on(event, handler)`
+
+```js
+parser.on('open', function(name, attrs) {
+  // name === 'div'
+  // attrs === { class: 'success' }
+})
+parser.parse('<div class="success">')
+```
+
+A parser instance is an `EventEmitter`.
 Events are emitted during the `parse()` operation.
+Supported events:
 
-Event | Signature | Description
------ | --------- | -----------
-start | () | Emitted once at beginning.
-open | (name, attributes, selfClosing) | Opening tag. `selfClosing` will be true if this tag self-closes.
-text | (text) | Text snippet.
-comment | (commentText) | Comment text snippet.
-close | (name, selfClosing) | Closing tag. `selfClosing` will be true if this was a self-closing tag.
-done | () | All done.
+ * **start**   - *()*                              - Emitted once at beginning.
+ * **open**    - *(name, attributes, selfClosing)* - Opening tag. `selfClosing` will be true if this tag self-closes.
+ * **text**    - *(text)*                          - Text snippet.
+ * **comment** - *(text)*                          - Comment text snippet.
+ * **close**   - *(name, selfClosing)*             - Closing tag. `selfClosing` will be true if this was a self-closing tag.
+ * **done**    - *()*                              - All done.
 
-## Entities
+### `parser.parse(html)`
 
-`Tokenizer()` and `Parser()` take an `options.entities` object in order to broaden the set of supported HTML character entities.
-Exhaustive support can be added, however for browser-based apps this pulls in a large-ish file.
-Thus, exhaustive entity support must be required separately.
+```js
+parser.parse('<p>hello</p>')
+```
+
+`html` is a string.
+Can be called arbitrarily many times per instance.
+`start` and `done` are emmitted once per run.
+
+## Exhaustive Entity Support
+
+`Tokenizer()` and `Parser()` take an `options.entities` object in order to support more HTML character entities.
+Support for a much wider set can be easily added by requiring the (large-ish) `entity-map.json` file.
 
 ```js
 var Parser = require('html-tokenizer/parser')
