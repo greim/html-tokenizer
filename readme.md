@@ -9,7 +9,7 @@ npm install html-tokenizer
 
 ## Tokenizer
 
-A tokenizer emits a stream of events such as "this looks like an attribute" or "this looks like an opening tag," *however* these won't necessarily be well-formed.
+A tokenizer emits a stream of events such as "here's an attribute" or "here's an opening tag," *however* these won't necessarily reflect the structure of well-formed HTML document.
 For example `<foo <foo` will produce two `opening-tag` events in a row.
 If that bothers you, then what you probably want is a parser, not a tokenizer, so keep scrolling down.
 
@@ -25,8 +25,7 @@ tokenizer.tokenize('<p>Hello</p>')
 ## Parser
 
 A basic HTML parser is included in the project which you can require separately.
-Instead of just telling you what things it finds, it attempts to find structure in the document.
-The tokenizer makes no such guarantees.
+Unlike the tokenizer, it attempts to find structure in the document.
 Note, the corner-case parsing rules for HTML5 are quite complicated and this may not cover them all.
 
 ```js
