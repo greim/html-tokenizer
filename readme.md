@@ -44,16 +44,22 @@ parser.parse('<p>Hello</p>')
 ```js
 var Tokenizer = require('html-tokenizer')
 var tokenizer = new Tokenizer({
-  entities: { copy: '\u00A9', ... } // &copy; ...
+  entities: { copy: '\u00A9' }
 })
+tokenizer.parse('<p>copyright &copy; 1993</p>')
 ```
 
-The only currently supported constructor option is an `entities` object that maps HTML entities to their unicode counterparts. This is optional and provides a way to expand the set of entities supported by default. By default only numeric codes are supported, plus a small subset of textual ones. These can be found in `default-entity-map.json`.
+The only currently supported constructor option is an `entities` object that maps HTML entities to their unicode counterparts.
+This is optional and provides a way to expand the set of entities supported by default.
+By default only numeric codes are supported, plus a small subset of textual ones found in `default-entity-map.json`.
 
 ### `on(event, handler)`
 
 ```js
-tokenizer.on(event, fn)
+tokenizer.on('opening-tag', function(name) {
+  // name === 'foo'
+})
+tokenizer.tokenize('<foo')
 ```
 
 A tokenizer instance is an EventEmitter.
@@ -78,15 +84,7 @@ tokenizer.tokenize('<span>hi</span>')
 
 `html` is a string.
 Can be called arbitrarily many times per instance.
-
-### `tokenizer.cancel()`
-
-```js
-tokenizer.cancel()
-```
-
-No arguments.
-Aborts the current parsing operation for whatever reason.
+`start` and `done` are emmitted once per run.
 
 ## Parser API
 
@@ -104,16 +102,24 @@ It's passed directly to the underlying tokenizer (see above).
 
 ### `parser.on(event, handler)`
 
+```js
+parser.on('open', function(name, attrs) {
+  // name === 'div'
+  // attrs === { class: 'success' }
+})
+parser.parse('<div class="success">')
+```
+
 A parser instance is an EventEmitter.
 Events are emitted during the `parse()` operation.
 Supported events:
 
- * **start** -   *()*                              - Emitted once at beginning.
- * **open** -    *(name, attributes, selfClosing)* - Opening tag. `selfClosing` will be true if this tag self-closes.
- * **text** -    *(text)*                          - Text snippet.
+ * **start**   - *()*                              - Emitted once at beginning.
+ * **open**    - *(name, attributes, selfClosing)* - Opening tag. `selfClosing` will be true if this tag self-closes.
+ * **text**    - *(text)*                          - Text snippet.
  * **comment** - *(text)*                          - Comment text snippet.
- * **close** -   *(name, selfClosing)*             - Closing tag. `selfClosing` will be true if this was a self-closing tag.
- * **done** -    *()*                              - All done.
+ * **close**   - *(name, selfClosing)*             - Closing tag. `selfClosing` will be true if this was a self-closing tag.
+ * **done**    - *()*                              - All done.
 
 ### `parser.parse(html)`
 
@@ -123,6 +129,7 @@ parser.parse('<p>hello</p>')
 
 `html` is a string.
 Can be called arbitrarily many times per instance.
+`start` and `done` are emmitted once per run.
 
 ## Exhaustive Entity Support
 
