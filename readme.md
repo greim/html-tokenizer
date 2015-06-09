@@ -39,31 +39,54 @@ parser.parse('<p>Hello</p>')
 
 ## Tokenizer API
 
-Name | Description
----- | -----------
-var Tokenizer = require('html-tokenizer') | Module exports a constructor.
-new Tokenizer(opts) | Constructor takes optional options.
-opts.entities | Constructor option. Entity => charcode map, e.g. `{copy:'\u00A9'}`. Merged over the defaults. By default only numeric codes are supported, plus a small subset of textual ones.
-Tokenizer.defaultEntityMap | Default set of entities.
-tokenizer.on(event, fn) | Events listed below.
-tokenizer.tokenize(html) | Can be called arbitrarily many times per instance.
-tokenizer.cancel() | Abort the current parsing operation for whatever reason.
+### `new Tokenizer()`
 
-### Events
+```js
+var Tokenizer = require('html-tokenizer')
+var tokenizer = new Tokenizer({
+  entities: { copy: '\u00A9', ... } // &copy; ...
+})
+```
 
+The only currently supported onstructor option is an `entities` object that maps HTML entities to their unicode counterparts. This is optional and provides a way to expand the set of entities supported by default. By default only numeric codes are supported, plus a small subset of textual ones. These can be found in `default-entity-map.json`.
+
+### `on()`
+
+```js
+tokenizer.on(event, fn)
+```
+
+A tokenizer instance is an EventEmitter.
 Events are emitted during the `tokenize()` operation.
+Supported events:
 
-Event | Signature | Description
------ | --------- | -----------
-start | () | Emitted once at beginning.
-opening-tag | (name) | Beginning of opening tag, like `<foo`.
-attribute | (name, value) | Only fires between "opening-tag" and "opening-tag-end" events.
-opening-tag-end | (name, token) | Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
-text | (text) | Text snippet.
-comment | (commentText) | Comment text.
-closing-tag | (name) | Closing tag, like `</foo>`.
-done | () | All done.
-cancel | () | Current `tokenize()` run was canceled before it finished.
+ * **start**           - *()*            - Emitted once at beginning.
+ * **opening-tag**     - *(name)*        - Beginning of opening tag, like `<foo`.
+ * **attribute**       - *(name, value)* - Only fires between "opening-tag" and "opening-tag-end" events.
+ * **opening-tag-end** - *(name, token)* - Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
+ * **text**            - *(text)*        - Text snippet.
+ * **comment**         - *(commentText)* - Comment text.
+ * **closing-tag**     - *(name)*        - Closing tag, like `</foo>`.
+ * **done**            - *()*            - All done.
+ * **cancel**          - *()*            - Current `tokenize()` run was canceled before it finished.
+
+### `tokenize()`
+
+```js
+tokenizer.tokenize(html)
+```
+
+Can be called arbitrarily many times per instance.
+HTML is a string.
+
+### `tokenizer.cancel()`
+
+```js
+tokenizer.cancel()
+```
+
+No arguments.
+Abort the current parsing operation for whatever reason.
 
 ## Parser API
 

@@ -8,27 +8,17 @@
 var EventEmitter = require('events').EventEmitter
   , util = require('util')
   , _ = require('lodash')
+  , defaultEntityMap = require('./default-entity-map')
 
 // -----------------------------------------------
 
 function Tokenizer(opts) {
   opts = opts || {}
   EventEmitter.call(this)
-  this._entityMap = _.extend({}, Tokenizer.defaultEntityMap, opts.entities)
+  this._entityMap = _.extend({}, defaultEntityMap, opts.entities)
 }
 
 util.inherits(Tokenizer, EventEmitter)
-
-_.extend(Tokenizer, {
-
-  defaultEntityMap: {
-    amp: '&',
-    quot: '"',
-    lt: '<',
-    gt: '>',
-    nbsp: '\u00A0',
-  },
-})
 
 _.extend(Tokenizer.prototype, {
 
