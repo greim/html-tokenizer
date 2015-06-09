@@ -62,7 +62,7 @@ tokenizer.on('opening-tag', function(name) {
 tokenizer.tokenize('<foo')
 ```
 
-A tokenizer instance is an EventEmitter.
+A tokenizer instance is an `EventEmitter`.
 Events are emitted during the `tokenize()` operation.
 Supported events:
 
@@ -110,7 +110,7 @@ parser.on('open', function(name, attrs) {
 parser.parse('<div class="success">')
 ```
 
-A parser instance is an EventEmitter.
+A parser instance is an `EventEmitter`.
 Events are emitted during the `parse()` operation.
 Supported events:
 
