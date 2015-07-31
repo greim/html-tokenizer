@@ -159,7 +159,7 @@ var chunk = (function(chunk){
     { name: 'getComment',       regex: /(([\s\S]*?)\-\->)/g },
     { name: 'getScript',        regex: /(([\s\S]*?)<\/script>)/g },
     { name: 'getTagEnd',        regex: /(\s*(\/?>))/g },
-    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-]+:)?[a-z0-9\-]+)(\s*=\s*)?)/ig }
+    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig }
   ], function(item) {
     chunk[item.name] = function(str, pos) {
       item.regex.lastIndex = pos
