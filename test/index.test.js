@@ -92,6 +92,7 @@ describe('html-tokenizer', function(){
     {html:'<script>alert("</script>")</script>',events:'start,opening-tag,script,opening-tag-end,script,>,text,alert(",closing-tag,script,text,"),closing-tag,script,done'},
     {html:'<script>alert("</scr"+"ipt>")</script>',events:'start,opening-tag,script,opening-tag-end,script,>,text,alert("</scr"+"ipt>"),closing-tag,script,done'},
     {html:'<div><p></div><b>',events:'start,opening-tag,div,opening-tag-end,div,>,opening-tag,p,opening-tag-end,p,>,closing-tag,div,opening-tag,b,opening-tag-end,b,>,done'},
+    {html:'<br _foo="bar">',events:'start,opening-tag,br,attribute,_foo,bar,opening-tag-end,br,>,done'},
   ].forEach(function(item) {
     (item.only?it.only:it)('should tokenize ' + JSON.stringify(item.html) + (item.entities?' with entities':''), function() {
       var result = collector(item.html, null, item.entities)
@@ -204,6 +205,8 @@ describe('html-tokenizer', function(){
       {html:'<script defer>',events:'start,open,script,{"defer":""},false,close,script,false,done'},
       {html:'<foo<foo<foo/>',events:'start,open,foo,{},true,close,foo,true,done'},
       {html:'<foo<foo<foo/>>>',events:'start,open,foo,{},true,close,foo,true,text,>>,done'},
+      {html:'<br att=\'yes, "no", yes\'>',events:'start,open,br,{"att":"yes, \\"no\\", yes"},true,close,br,true,done'},
+      {html:'<br att=\'margin: 0px; padding: 3px 4px; width: 652px; color: rgb(153, 153, 153); font-family: "Open Sans", Helvetica, Arial, sans-serif; font-size: 11px; display: block;\'>',events:'start,open,br,{"att":"margin: 0px; padding: 3px 4px; width: 652px; color: rgb(153, 153, 153); font-family: \\"Open Sans\\", Helvetica, Arial, sans-serif; font-size: 11px; display: block;"},true,close,br,true,done'},
 
       //An li element's end tag may be omitted if the li element is immediately followed by another li element or if there is no more content in the parent element.
       {html:'<ul><li></li></ul>a',events:'start,open,ul,{},false,open,li,{},false,close,li,false,close,ul,false,text,a,done'},
