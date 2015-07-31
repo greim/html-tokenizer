@@ -152,15 +152,15 @@ var states = {
 // -----------------------------------------------
 
 var chunk = (function(chunk){
-  ;[{ name: 'getOpeningTag',    regex: /(<(([a-z0-9\-]+:)?[a-z0-9\-]+))/ig },
+  _.forEach([{ name: 'getOpeningTag',    regex: /(<(([a-z0-9\-]+:)?[a-z0-9\-]+))/ig },
     { name: 'getText',          regex: /([^<]+)/g },
     { name: 'getClosingTag',    regex: /(<\/(([a-z0-9\-]+:)?[a-z0-9\-]+)>)/ig },
     { name: 'getCommentOpen',   regex: /(<!\-\-)/g },
     { name: 'getComment',       regex: /(([\s\S]*?)\-\->)/g },
     { name: 'getScript',        regex: /(([\s\S]*?)<\/script>)/g },
     { name: 'getTagEnd',        regex: /(\s*(\/?>))/g },
-    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-]+:)?[a-z0-9\-]+)(\s*=\s*)?)/ig },
-  ].forEach(function(item) {
+    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig }
+  ], function(item) {
     chunk[item.name] = function(str, pos) {
       item.regex.lastIndex = pos
       var match = item.regex.exec(str)

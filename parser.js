@@ -141,7 +141,7 @@ var isClosedByParent = (function() {
 
 function makeLookup(str) {
   var obj = {}
-  str.split(',').forEach(function(x) { obj[x] = true })
+  _.forEach(str.split(','), function(x) { obj[x] = true })
   return obj
 }
 
