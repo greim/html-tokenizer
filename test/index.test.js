@@ -145,6 +145,28 @@ describe('html-tokenizer', function(){
     assert.strictEqual(tkzr._running, undefined)
   })
 
+  it('should parse entities', function() {
+    var tkzr = new Tokenizer()
+      , ran = false
+    tkzr.on('text', function(text) {
+      assert.strictEqual(text, '&')
+      ran = true
+    })
+    tkzr.tokenize('&amp;')
+    assert.ok(ran, 'did not run')
+  })
+
+  it('should parse entities in attributes', function() {
+    var tkzr = new Tokenizer()
+      , ran = false
+    tkzr.on('attribute', function(name, val) {
+      assert.strictEqual(val, '&')
+      ran = true
+    })
+    tkzr.tokenize('<x y="&amp;"/>')
+    assert.ok(ran, 'did not run')
+  })
+
   it('should expose more entities', function() {
 
     var tkzr = new Tokenizer({entities:entityMap})
@@ -154,6 +176,17 @@ describe('html-tokenizer', function(){
       ran = true
     })
     tkzr.tokenize('&deg;')
+    assert.ok(ran, 'did not run')
+  })
+
+  it('should parse more entities in attributes', function() {
+    var tkzr = new Tokenizer({entities:entityMap})
+      , ran = false
+    tkzr.on('attribute', function(name, val) {
+      assert.strictEqual(val, '\u00B0')
+      ran = true
+    })
+    tkzr.tokenize('<x y="&deg;"/>')
     assert.ok(ran, 'did not run')
   })
 

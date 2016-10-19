@@ -119,7 +119,7 @@ _.extend(Tokenizer.prototype, {
           if (hasVal) {
             var read = readAttribute(html, pos)
             pos += read.length
-            this._send('attribute', name, read.value)
+            this._send('attribute', name, deentityify(read.value, this._entityMap))
           } else {
             this._send('attribute', name, '')
           }
