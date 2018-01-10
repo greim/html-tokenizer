@@ -83,7 +83,7 @@ tokenizer.tokenize('<span>hi</span>')
 
 `html` is a string.
 Can be called arbitrarily many times per instance.
-`start` and `done` are emmitted once per run.
+`start` and `done` are emitted once per run.
 
 ## Parser API
 
@@ -128,7 +128,7 @@ parser.parse('<p>hello</p>')
 
 `html` is a string.
 Can be called arbitrarily many times per instance.
-`start` and `done` are emmitted once per run.
+`start` and `done` are emitted once per run.
 
 ## Exhaustive Entity Support
 
