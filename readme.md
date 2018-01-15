@@ -1,7 +1,7 @@
 # HTML Tokenizer
 
 A small, super-fast, event-driven, fault-tolerant, html tag-soup tokenizer that works in node but which is mainly intended as a lightweight client-side parser for small HTML snippets.
-You pass it a string which is supposed to contain HTML, and it emits a stream of events telling you what things it finds.
+You pass it a string which is supposed to contain HTML, and it emits events telling you what things it finds.
 
 ```
 npm install html-tokenizer
