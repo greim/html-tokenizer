@@ -1,0 +1,28 @@
+--------------
+tokenizing html snippet of size 75:
+took 516ms to run 133333 times
+~258 runs/ms
+~258397 runs/s
+~0.004 ms/run
+~3.870 μs/run
+--------------
+parsing html snippet of size 75:
+took 633ms to run 133333 times
+~211 runs/ms
+~210637 runs/s
+~0.005 ms/run
+~4.748 μs/run
+--------------
+tokenizing html snippet of size 71809:
+took 277ms to run 139 times
+~1 runs/ms
+~502 runs/s
+~1.993 ms/run
+~1992.806 μs/run
+--------------
+parsing html snippet of size 71809:
+took 309ms to run 139 times
+~0 runs/ms
+~450 runs/s
+~2.223 ms/run
+~2223.022 μs/run

@@ -15,7 +15,7 @@ var Tokenizer = require('../index')
 
 ;[smallHtml, bigHtml].forEach(function(html) {
 
-  var start, end, diff, i
+  var start, end, duration, i
     , iterations = Math.round(10000000 / html.length)
 
   start = Date.now()
@@ -23,26 +23,26 @@ var Tokenizer = require('../index')
     tokenizer.tokenize(html)
   }
   end = Date.now()
-  diff = end - start
+  duration = end - start
   console.log('--------------')
   console.log('tokenizing html snippet of size %s:', html.length)
-  console.log('took %sms to run %s times', diff, iterations)
-  console.log('~%s ops/ms', (iterations / diff).toFixed(0))
-  console.log('~%s ops/s', ((iterations / diff) * 1000).toFixed(0))
-  console.log('~%s ms/op', (diff/iterations).toFixed(3))
-  console.log('~%s μs/op', ((diff/iterations)*1000).toFixed(3))
+  console.log('took %sms to run %s times', duration, iterations)
+  console.log('~%s runs/ms', (iterations / duration).toFixed(0))
+  console.log('~%s runs/s', ((iterations / duration) * 1000).toFixed(0))
+  console.log('~%s ms/run', (duration/iterations).toFixed(3))
+  console.log('~%s μs/run', ((duration/iterations)*1000).toFixed(3))
 
   start = Date.now()
   for (i=0; i<iterations; i++) {
     parser.parse(html)
   }
   end = Date.now()
-  diff = end - start
+  duration = end - start
   console.log('--------------')
   console.log('parsing html snippet of size %s:', html.length)
-  console.log('took %sms to run %s times', diff, iterations)
-  console.log('~%s ops/ms', (iterations / diff).toFixed(0))
-  console.log('~%s ops/s', ((iterations / diff) * 1000).toFixed(0))
-  console.log('~%s ms/op', (diff/iterations).toFixed(3))
-  console.log('~%s μs/op', ((diff/iterations)*1000).toFixed(3))
+  console.log('took %sms to run %s times', duration, iterations)
+  console.log('~%s runs/ms', (iterations / duration).toFixed(0))
+  console.log('~%s runs/s', ((iterations / duration) * 1000).toFixed(0))
+  console.log('~%s ms/run', (duration/iterations).toFixed(3))
+  console.log('~%s μs/run', ((duration/iterations)*1000).toFixed(3))
 })
