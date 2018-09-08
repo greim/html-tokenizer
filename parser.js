@@ -3,112 +3,102 @@
  * MIT License. See mit-license.txt for more info.
  */
 
-'use strict'
+'use strict';
 
-var Tokenizer = require('./index')
-  , EventEmitter = require('events').EventEmitter
-  , util = require('util')
-  , _ = require('lodash')
+const Tokenizer = require('./index');
+const types = require('./types');
 
-function Parser(opts) {
-  opts = opts || {}
-  EventEmitter.call(this)
-  var tkzr = this._tokenizer = new Tokenizer(opts)
-    , self = this
-    , pendingTag
-  // ----------------------
-  tkzr.on('start', function() {
-    self.emit('start')
-  })
-  // ----------------------
-  tkzr.on('opening-tag', function(name) {
-    pendingTag = {name:name,attributes:{}}
-  })
-  // ----------------------
-  tkzr.on('closing-tag', function(name) {
-    var current = self._stack.peek()
-      , parent = self._stack.peek(1)
-    if (current) {
-      if (current.name === name) {
-        self._stack.pop()
-        self.emit('close', current.name, false)
-      } else {
-        if (parent && parent.name === name && isClosedByParent(current.name)) {
-          self._stack.pop()
-          self.emit('close', current.name, false)
-          self._stack.pop()
-          self.emit('close', parent.name, false)
+class Parser {
+
+  static parse(html, opts) {
+    const parser = new Parser(opts);
+    return parser.parse(html);
+  }
+
+  constructor(opts = {}) {
+    this.tokenizer = new Tokenizer(opts);
+    Object.freeze(this);
+  }
+
+  *parse(html) {
+    const tkzr = this.tokenizer;
+    const stack = makeStack();
+    let pendingTag;
+
+    for (const tkn of tkzr.tokenize(html)) {
+      const { type, name, token, value } = tkn;
+      if (type === types.OPENING_TAG) {
+        pendingTag = { name, attributes: {} };
+      } else if (type === types.CLOSING_TAG) {
+        const current = stack.peek();
+        const parent = stack.peek(1);
+        if (current) {
+          if (current.name === name) {
+            stack.pop();
+            yield { type: types.CLOSE, name: current.name, selfClosing: false };
+          } else {
+            if (parent && parent.name === name && isClosedByParent(current.name)) {
+              stack.pop();
+              yield { type: types.CLOSE, name: current.name, selfClosing: false };
+              stack.pop();
+              yield { type: types.CLOSE, name: parent.name, selfClosing: false };
+            }
+          }
         }
+      } else if (type === types.OPENING_TAG_END) {
+        const mightBeClosed = stack.peek();
+        const isSelfClose = token === '/>' || isSelfClosing(name);
+        if (mightBeClosed && isClosedBy(mightBeClosed.name, pendingTag.name)) {
+          stack.pop();
+          yield { type: types.CLOSE, name: mightBeClosed.name, selfClosing: false };
+        }
+        yield { type: types.OPEN, name: pendingTag.name, attributes: pendingTag.attributes, selfClosing: isSelfClose };
+        if (isSelfClose) {
+          yield { type: types.CLOSE, name: pendingTag.name, selfClosing: true };
+        } else {
+          stack.push(pendingTag);
+        }
+      } else if (type === types.TEXT) {
+        // yield { type: 'text', text };
+        yield tkn;
+      } else if (type === types.COMMENT) {
+        // yield { type: 'comment', text };
+        yield tkn;
+      } else if (type === types.ATTRIBUTE) {
+        pendingTag.attributes[name] = value;
+      } else if (type === types.START) {
+        yield { type };
       }
     }
-  })
-  // ----------------------
-  tkzr.on('opening-tag-end', function(name, token) {
-    var mightBeClosed = self._stack.peek()
-      , isSelfClose = token === '/>' || isSelfClosing(name)
-    if (mightBeClosed && isClosedBy(mightBeClosed.name, pendingTag.name)) {
-      self._stack.pop()
-      self.emit('close', mightBeClosed.name, false)
+    while (stack.length > 0) {
+      const next = stack.pop();
+      yield { type: types.CLOSE, name: next.name, selfClosing: false };
     }
-    self.emit('open', pendingTag.name, pendingTag.attributes, isSelfClose)
-    if (isSelfClose) {
-      self.emit('close', pendingTag.name, true)
-    } else {
-      self._stack.push(pendingTag)
-    }
-  })
-  // ----------------------
-  tkzr.on('text', function(value) {
-    self.emit('text', value)
-  })
-  // ----------------------
-  tkzr.on('comment', function(value) {
-    self.emit('comment', value)
-  })
-  // ----------------------
-  tkzr.on('attribute', function(name, value) {
-    pendingTag.attributes[name] = value
-  })
+    yield { type: types.DONE };
+  }
 }
 
-util.inherits(Parser, EventEmitter)
-
-_.extend(Parser.prototype, {
-
-  parse: function(html) {
-    this._stack = makeStack()
-    this._tokenizer.tokenize(html)
-    while (this._stack.length > 0) {
-      var next = this._stack.pop()
-      this.emit('close', next.name, false)
-    }
-    delete this._stack
-    this.emit('done')
+const makeStack = (() => {
+  function peek(n = 0) {
+    return this[this.length - (n + 1)];
   }
-})
+  return () => {
+    const stack = [];
+    stack.peek = peek;
+    return stack;
+  };
+})();
 
-var makeStack = (function() {
-  function peek(n) {
-    n = n || 0
-    return this[this.length - (n + 1)]
-  }
-  return function() {
-    var stack = []
-    stack.peek = peek
-    return stack
-  }
-})()
+const isSelfClosing = (() => {
+  const table = makeLookup('area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr');
+  return (closee) => {
+    return table.has(closee);
+  };
+})();
 
-var isSelfClosing = (function() {
-  var table = makeLookup('area,base,br,col,command,embed,hr,img,input,keygen,link,meta,param,source,track,wbr')
-  return function(closee) {
-    return !!table[closee]
-  }
-})()
-
-var isClosedBy = (function() {
-  var empty = {}
-  var table = {
+const isClosedBy = (() => {
+  const empty = new Set();
+  const table = Object.freeze({
     p: makeLookup('address,article,aside,blockquote,div,dl,fieldset,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,hr,main,nav,ol,p,pre,section,table,ul'),
     li: makeLookup('li'),
     dt: makeLookup('dt,dd'),
@@ -125,24 +115,22 @@ var isClosedBy = (function() {
     tr: makeLookup('tr'),
     td: makeLookup('td,th'),
     th: makeLookup('td,th'),
-  }
-  return function(closee, closer) {
-    var lookup = table[closee] || empty
-    return !!lookup[closer]
-  }
-})()
+  });
+  return (closee, closer) => {
+    const lookup = table[closee] || empty;
+    return lookup.has(closer);
+  };
+})();
 
-var isClosedByParent = (function() {
-  var table = makeLookup('p,li,dd,rb,rt,rtc,rp,optgroup,option,tbody,tfoot,tr,td,th')
-  return function(closee) {
-    return !!table[closee]
-  }
-})()
+const isClosedByParent = (() => {
+  const table = makeLookup('p,li,dd,rb,rt,rtc,rp,optgroup,option,tbody,tfoot,tr,td,th');
+  return (closee) => {
+    return table.has(closee);
+  };
+})();
 
 function makeLookup(str) {
-  var obj = {}
-  _.forEach(str.split(','), function(x) { obj[x] = true })
-  return obj
+  return new Set(str.split(','));
 }
 
-module.exports = Parser
+module.exports = Parser;

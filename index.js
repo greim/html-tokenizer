@@ -3,227 +3,222 @@
  * MIT License. See mit-license.txt for more info.
  */
 
-'use strict'
+/* eslint-disable no-cond-assign */
 
-var EventEmitter = require('events').EventEmitter
-  , util = require('util')
-  , _ = require('lodash')
-  , defaultEntityMap = require('./default-entity-map')
+'use strict';
+
+const defaultEntityMap = require('./default-entity-map');
+const types = require('./types');
 
 // -----------------------------------------------
 
-function Tokenizer(opts) {
-  opts = opts || {}
-  EventEmitter.call(this)
-  this._entityMap = _.extend({}, defaultEntityMap, opts.entities)
-}
+class Tokenizer {
 
-util.inherits(Tokenizer, EventEmitter)
+  static tokenize(html, opts) {
+    const tokenizer = new Tokenizer(opts);
+    return tokenizer.tokenize(html);
+  }
 
-_.extend(Tokenizer.prototype, {
+  constructor(opts = {}) {
+    this.entityMap = Object.assign({}, defaultEntityMap, opts.entities);
+    Object.freeze(this);
+  }
 
-  cancel: function() {
-    this._send('cancel')
-  },
+  entities(map) {
+    Object.assign(this.entityMap, map);
+  }
 
-  entities: function(map) {
-    _.extend(this._entityMap, map)
-  },
-
-  _send: function(ev) {
-    if (!this._running) {
-      return
-    }
-    if (ev === 'text') {
-      var text = arguments[1]
-      if (this._text === undefined) {
-        this._text = text
+  *tokenize(html) {
+    let currentText;
+    for (const tkn of this._tokenize(html)) {
+      if (tkn.type === types.TEXT) {
+        const text = tkn.text;
+        if (currentText === undefined) {
+          currentText = text;
+        } else {
+          currentText += text;
+        }
       } else {
-        this._text += text
-      }
-    } else {
-      if (this._text) {
-        var deentText = deentityify(this._text, this._entityMap)
-        this.emit('text', deentText)
-        delete this._text
-      }
-      var len = arguments.length
-      if (len === 1) {
-        this.emit(ev)
-      } else if (len === 2) {
-        this.emit(ev, arguments[1])
-      } else if (len === 3) {
-        this.emit(ev, arguments[1], arguments[2])
-      } else {
-        this.emit.apply(this, arguments)
+        if (currentText) {
+          const deentText = deentityify(currentText, this.entityMap);
+          yield { type: types.TEXT, text: deentText };
+          currentText = undefined;
+        }
+        yield tkn;
       }
     }
-    if (ev === 'cancel') {
-      delete this._running
-    }
-  },
+  }
 
-  tokenize: function(html) {
-    this._running = true
-    this._send('start')
-    var pos = 0
-      , state = states.inText
-      , currentTag
-      , next
+  *_tokenize(html) {
+    yield { type: types.START };
+    let pos = 0;
+    let state = states.inText;
+    let currentTag;
+    let next;
     while (pos < html.length) {
       if (state === states.inText) {
-        var isBracket = html.charAt(pos) === '<' // cheap pre-emptive check
+        const isBracket = html.charAt(pos) === '<'; // cheap pre-emptive check
         if (isBracket && (next = chunk.getOpeningTag(html, pos))) {
-          pos += next.length
-          currentTag = next.match[2]
-          this._send('opening-tag', currentTag)
-          state = states.inTag
+          pos += next.length;
+          currentTag = next.match[2];
+          yield { type: types.OPENING_TAG, name: currentTag };
+          state = states.inTag;
         } else if (isBracket && (next = chunk.getClosingTag(html, pos))) {
-          pos += next.length
-          this._send('closing-tag', next.match[2])
+          pos += next.length;
+          yield { type: types.CLOSING_TAG, name: next.match[2] };
         } else if (isBracket && (next = chunk.getCommentOpen(html, pos))) {
-          pos += next.length
-          state = states.inComment
+          pos += next.length;
+          state = states.inComment;
         } else if (next = chunk.getText(html, pos)) {
-          pos += next.length
-          this._send('text', next.match[1])
+          pos += next.length;
+          yield { type: types.TEXT, text: next.match[1] };
         } else {
-          var text = html.substring(pos, pos + 1)
-          pos += 1
-          this._send('text', text)
+          const text = html.substring(pos, pos + 1);
+          pos += 1;
+          yield { type: types.TEXT, text };
         }
       } else if (state === states.inComment) {
         if (next = chunk.getComment(html, pos)) {
-          pos += next.length
-          this._send('comment', next.match[2])
-          state = states.inText
+          pos += next.length;
+          yield { type: types.COMMENT, text: next.match[2] };
+          state = states.inText;
         } else {
-          this._send('comment', html.substring(pos))
-          break
+          yield { type: types.COMMENT, text: html.substring(pos) };
+          break;
         }
       } else if (state === states.inScript) {
         if (next = chunk.getScript(html, pos)) {
-          pos += next.length
-          this._send('text', next.match[2])
-          this._send('closing-tag', 'script')
-          state = states.inText
+          pos += next.length;
+          yield { type: types.TEXT, text: next.match[2] };
+          yield { type: types.CLOSING_TAG, name: 'script' };
+          state = states.inText;
         } else {
-          this._send('text', html.substring(pos))
-          break
+          yield { type: types.TEXT, text: html.substring(pos) };
+          break;
         }
       } else if (state === states.inTag) {
         if (next = chunk.getAttributeName(html, pos)) {
-          pos += next.length
-          var name = next.match[2]
-          var hasVal = next.match[4]
+          pos += next.length;
+          const name = next.match[2];
+          const hasVal = next.match[4];
           if (hasVal) {
-            var read = readAttribute(html, pos)
-            pos += read.length
-            this._send('attribute', name, deentityify(read.value, this._entityMap))
+            const read = readAttribute(html, pos);
+            pos += read.length;
+            yield { type: types.ATTRIBUTE, name, value: deentityify(read.value, this.entityMap) };
           } else {
-            this._send('attribute', name, '')
+            yield { type: types.ATTRIBUTE, name, value: '' };
           }
         } else if (next = chunk.getTagEnd(html, pos)) {
-          pos += next.length
-          var token = next.match[2]
-          this._send('opening-tag-end', currentTag, token)
-          state = currentTag === 'script' ? states.inScript : states.inText
+          pos += next.length;
+          const token = next.match[2];
+          yield { type: types.OPENING_TAG_END, name: currentTag, token };
+          state = currentTag === 'script' ? states.inScript : states.inText;
         } else {
-          state = states.inText
+          state = states.inText;
         }
       } else {
-        break
+        break;
       }
     }
-    this._send('done')
-    delete this._running
+    yield { type: types.DONE };
   }
-})
-
-// -----------------------------------------------
-
-var states = {
-  inTag: 'in tag',
-  inComment: 'in comment',
-  inText: 'in text',
-  inScript: 'in script',
 }
 
 // -----------------------------------------------
 
-var chunk = (function(chunk){
-  _.forEach([{ name: 'getOpeningTag',    regex: /(<(([a-z0-9\-]+:)?[a-z0-9\-]+))/ig },
-    { name: 'getText',          regex: /([^<]+)/g },
-    { name: 'getClosingTag',    regex: /(<\/(([a-z0-9\-]+:)?[a-z0-9\-]+)>)/ig },
-    { name: 'getCommentOpen',   regex: /(<!\-\-)/g },
-    { name: 'getComment',       regex: /(([\s\S]*?)\-\->)/g },
-    { name: 'getScript',        regex: /(([\s\S]*?)<\/script>)/g },
-    { name: 'getTagEnd',        regex: /(\s*(\/?>))/g },
-    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig }
-  ], function(item) {
-    chunk[item.name] = function(str, pos) {
-      item.regex.lastIndex = pos
-      var match = item.regex.exec(str)
+const states = {
+  inTag: Symbol(),
+  inComment: Symbol(),
+  inText: Symbol(),
+  inScript: Symbol(),
+};
+
+// -----------------------------------------------
+
+const chunk = ((chnk) => {
+  [
+    { name: 'getOpeningTag', regex: /(<(([a-z0-9-]+:)?[a-z0-9-]+))/ig },
+    { name: 'getText', regex: /([^<]+)/g },
+    { name: 'getClosingTag', regex: /(<\/(([a-z0-9-]+:)?[a-z0-9-]+)>)/ig },
+    { name: 'getCommentOpen', regex: /(<!--)/g },
+    { name: 'getComment', regex: /(([\s\S]*?)-->)/g },
+    { name: 'getScript', regex: /(([\s\S]*?)<\/script>)/g },
+    { name: 'getTagEnd', regex: /(\s*(\/?>))/g },
+    { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig },
+  ].forEach(({ name, regex }) => {
+    chnk[name] = (str, pos) => {
+      regex.lastIndex = pos;
+      const match = regex.exec(str);
       if (!match || match.index !== pos) {
-        return undefined
+        return undefined;
       } else {
         return {
           length: match[1].length,
-          match: match
-        }
+          match,
+        };
       }
-    }
-  })
-  return chunk
-})({})
+    };
+  });
+  return chnk;
+})({});
 
 // -----------------------------------------------
 
-var readAttribute = (function() {
-  var patt = /(\s*([^>\s]*))/g
-  return function(str, pos) {
-    var quote = str.charAt(pos)
-    if (quote === '"' || quote === "'") {
-      var nextQuote = str.indexOf(quote, pos + 1)
+const readAttribute = (() => {
+  const patt = /(\s*([^>\s]*))/g;
+  const quotes = new Set('"\'');
+  return (str, pos) => {
+    const quote = str.charAt(pos);
+    const pos1 = pos + 1;
+    if (quotes.has(quote)) {
+      const nextQuote = str.indexOf(quote, pos1);
       if (nextQuote === -1) {
-        return { length: str.length - pos, value: str.substring(pos + 1) }
+        return { length: str.length - pos, value: str.substring(pos1) };
       } else {
-        return { length: (nextQuote - pos) + 1, value: str.substring(pos + 1, nextQuote) }
+        return { length: (nextQuote - pos) + 1, value: str.substring(pos1, nextQuote) };
       }
     } else {
-      patt.lastIndex = pos
-      var match = patt.exec(str)
-      return { length: match[1].length, value: match[2] }
+      patt.lastIndex = pos;
+      const match = patt.exec(str);
+      return { length: match[1].length, value: match[2] };
     }
-  }
-})()
+  };
+})();
 
 // -----------------------------------------------
 
-var deentityify = (function() {
-  var patt = /&(#?)([a-z0-9]+);/ig
-    , map
-
-  function handler(ent, isNum, content) {
-    if (isNum) {
-      var num
-      if (content.charAt(0) === 'x') {
-        num = parseInt('0'+content, 16)
-      } else {
-        num = parseInt(content, 10)
-      }
-      return String.fromCharCode(num)
-    } else {
-      return map[content] || ent
+const deentityify = (() => {
+  const patt = /&(#?)([a-z0-9]+);/ig;
+  const handlers = new WeakMap();
+  function getHandler(map) {
+    let handler = handlers.get(map);
+    if (!handler) {
+      const callback = function(ent, isNum, content) {
+        if (isNum) {
+          const num = content.charAt(0) === 'x'
+            ? parseInt('0' + content, 16)
+            : parseInt(content, 10);
+          return String.fromCharCode(num);
+        } else {
+          return map[content] || ent;
+        }
+      };
+      handler = text => {
+        return text.indexOf('&') > -1 // attempt short circuit
+          ? text.replace(patt, callback)
+          : text;
+      };
+      handlers.set(map, handler);
     }
+    return handler;
   }
 
-  return function(text, aMap) {
-    map = aMap
-    return text.replace(patt, handler)
-  }
-})()
+  return (text, map) => {
+    const handler = getHandler(map);
+    return handler(text);
+  };
+})();
 
 // -----------------------------------------------
 
-module.exports = Tokenizer
+module.exports = Tokenizer;
