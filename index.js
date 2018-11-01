@@ -7,27 +7,27 @@
 
 var EventEmitter = require('events').EventEmitter
   , util = require('util')
-  , _ = require('lodash')
   , defaultEntityMap = require('./default-entity-map')
+  , extend = require('./extend')
 
 // -----------------------------------------------
 
 function Tokenizer(opts) {
   opts = opts || {}
   EventEmitter.call(this)
-  this._entityMap = _.extend({}, defaultEntityMap, opts.entities)
+  this._entityMap = extend({}, defaultEntityMap, opts.entities)
 }
 
 util.inherits(Tokenizer, EventEmitter)
 
-_.extend(Tokenizer.prototype, {
+extend(Tokenizer.prototype, {
 
   cancel: function() {
     this._send('cancel')
   },
 
   entities: function(map) {
-    _.extend(this._entityMap, map)
+    extend(this._entityMap, map)
   },
 
   _send: function(ev) {
@@ -152,7 +152,8 @@ var states = {
 // -----------------------------------------------
 
 var chunk = (function(chunk){
-  _.forEach([{ name: 'getOpeningTag',    regex: /(<(([a-z0-9\-]+:)?[a-z0-9\-]+))/ig },
+  var patts = [
+    { name: 'getOpeningTag',    regex: /(<(([a-z0-9\-]+:)?[a-z0-9\-]+))/ig },
     { name: 'getText',          regex: /([^<]+)/g },
     { name: 'getClosingTag',    regex: /(<\/(([a-z0-9\-]+:)?[a-z0-9\-]+)>)/ig },
     { name: 'getCommentOpen',   regex: /(<!\-\-)/g },
@@ -160,7 +161,8 @@ var chunk = (function(chunk){
     { name: 'getScript',        regex: /(([\s\S]*?)<\/script>)/g },
     { name: 'getTagEnd',        regex: /(\s*(\/?>))/g },
     { name: 'getAttributeName', regex: /(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig }
-  ], function(item) {
+  ];
+  patts.forEach(function(item) {
     chunk[item.name] = function(str, pos) {
       item.regex.lastIndex = pos
       var match = item.regex.exec(str)

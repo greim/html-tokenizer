@@ -8,7 +8,7 @@
 var Tokenizer = require('./index')
   , EventEmitter = require('events').EventEmitter
   , util = require('util')
-  , _ = require('lodash')
+  , extend = require('./extend')
 
 function Parser(opts) {
   opts = opts || {}
@@ -73,7 +73,7 @@ function Parser(opts) {
 
 util.inherits(Parser, EventEmitter)
 
-_.extend(Parser.prototype, {
+extend(Parser.prototype, {
 
   parse: function(html) {
     this._stack = makeStack()
@@ -141,7 +141,7 @@ var isClosedByParent = (function() {
 
 function makeLookup(str) {
   var obj = {}
-  _.forEach(str.split(','), function(x) { obj[x] = true })
+  str.split(',').forEach(function(x) { obj[x] = true })
   return obj
 }
 
