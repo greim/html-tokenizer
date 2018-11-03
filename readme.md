@@ -10,7 +10,7 @@ npm install html-tokenizer
 ## Tokenizer
 
 A tokenizer tells you things such as "here's an attribute" or "here's an opening tag," however these may or may not reflect well-formed HTML, depending on the input document.
-For example the input `<foo <foo` will output two `opening-tag` items in a row.
+For example the input `"<foo <foo"` will output two `opening-tag` items in a row.
 If that bothers you, then what you probably want is a parser, not a tokenizer, so keep scrolling down.
 
 ```js
@@ -29,6 +29,7 @@ for (const token of itr) {
 An HTML parser is included in the project which you can require separately.
 Unlike the tokenizer, it seeks out structure in the document.
 Malformed input will generally be output as text in these cases, rather than the parser throwing an error.
+If that bothers you, you probably want to use a different lib.
 
 ```js
 const Parser = require('html-tokenizer/parser')
@@ -153,4 +154,5 @@ const parser = new Parser({ entities });
 
 ## Changelog
 
- * **3.0.0** - This is a large breaking change due to switching the API idiom from event callbacks to iteration, no longer extending `EventEmitter`, making instances immutable, and updating the dialect from circa-2014 to 2018 JavaScript. All state is now local to returned iterators; instances themselves are stateless and can be shared wantonly across space and time. Also, in order to reduce install footprint, `lodash` is removed as a dependency, since it was only used for a few trivial things.
+ * **3.0.0** - This is a breaking change due to several things: 1) switching the API from event callbacks to iteration, 2) no longer extending `EventEmitter`, 3) making instances immutable, and 4) updating the JS syntax from circa-2014 to 2018 JavaScript. As of 3.x, tokenizer and parser state is now completely local to the returned iterator instance, which is by definition a throw-away object used once. Parser and tokenizer instances themselves are stateless and can be shared effortlessly across space and time. Also, in order to reduce install footprint, `lodash` is removed as a dependency, since it was only used for a few trivial things.
+ * **2.0.1** - Retroactive change to the 2.x line to remove `lodash` in order to reduce install footprint, but otherwise maintain full backwards compatibility.
