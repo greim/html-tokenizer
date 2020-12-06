@@ -16,4 +16,4 @@ export default function(str: string, pos: number) {
     const match = PATTERN.exec(str) || [];
     return { length: match[1].length, value: match[2] };
   }
-};
+}

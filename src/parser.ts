@@ -1,9 +1,8 @@
-import Tokenizer from './index';
-import { Options } from './lib/types';
-import Stack from './lib/stack';
-import { isClosedBy, isClosedByParent, isSelfClosing } from './lib/util';
+import { Tokenizer } from './tokenizer';
+import { Options } from './types';
+import Stack from './stack';
+import { isClosedBy, isClosedByParent, isSelfClosing } from './util';
 
-export { Entities } from './lib/types';
 export type ParserOptions = Options;
 export type ParseToken = OpenParseToken | TextParseToken | CommentParseToken | CloseParseToken;
 export interface OpenParseToken { type: 'open'; name: string; attributes: Attributes; selfClosing: boolean; }
@@ -20,7 +19,7 @@ interface PendingTag {
   attributes: Attributes;
 }
 
-export default class Parser {
+export class Parser {
 
   private readonly tokenizer: Tokenizer;
 

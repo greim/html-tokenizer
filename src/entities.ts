@@ -1,4 +1,4 @@
-import { Entities } from './lib/types';
+import { Entities } from './types';
 
 const entities: Entities = {
   'Tab': '\u0009',

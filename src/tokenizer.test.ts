@@ -1,7 +1,7 @@
-import Tokenizer, { AttributeToken, TextToken, Token } from '.';
 import * as assert from 'assert';
+import { Tokenizer, AttributeToken, TextToken, Token } from './tokenizer';
 import entityMap from './entities';
-import { Entities } from './lib/types';
+import { Entities } from './types';
 
 interface TestDescr {
   html: string;
