@@ -1,7 +1,10 @@
 const PATTERN = /(\s*([^>\s]*))/g;
 const QUOTES = new Set('"\'');
 
-export default function(str: string, pos: number) {
+/**
+ * Extract an attribute from a chunk of text.
+ */
+export default function readAttribute(str: string, pos: number) {
   const quote = str.charAt(pos);
   const pos1 = pos + 1;
   if (QUOTES.has(quote)) {

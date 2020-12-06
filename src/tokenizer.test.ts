@@ -106,18 +106,10 @@ describe('html-tokenizer', () => {
 
   it('should be repeatable', () => {
     const html = '<p>hello <a href="#">there</a></p> <br> <br> <!-- nope-->';
-    const tkzr = new Tokenizer();
+    const tkzr = Tokenizer.from({});
     const a = [...tkzr.tokenize(html)];
     const b = [...tkzr.tokenize(html)];
     assert.deepEqual(a, b);
-  });
-
-  it('should be extendable', () => {
-    class Tokenizer2 extends Tokenizer { foo() {} }
-    const tkzr = new Tokenizer2();
-    const html = '<p>hello</p>';
-    const a = [...tkzr.tokenize(html)];
-    assert.ok(a.length > 0);
   });
 
   it('should have static', () => {
@@ -127,32 +119,32 @@ describe('html-tokenizer', () => {
   });
 
   it('should parse entities', () => {
-    const tkzr = new Tokenizer();
+    const tkzr = Tokenizer.from({});
     const [tkn] = [...tkzr.tokenize('&amp;')].filter(isTextToken);
     assert.strictEqual(tkn.text, '&');
   });
 
   it('should parse entities in attributes', () => {
-    const tkzr = new Tokenizer();
+    const tkzr = Tokenizer.from({});
     const [tkn] = [...tkzr.tokenize('<x y="&amp;"/>')].filter(isAttrToken);
     assert.strictEqual(tkn.value, '&');
   });
 
   it('should expose more entities', () => {
-    const tkzr = new Tokenizer({ entities: entityMap });
+    const tkzr = Tokenizer.from({ entities: entityMap });
     const [tkn] = [...tkzr.tokenize('&deg;')].filter(isTextToken);
     assert.strictEqual(tkn.text, '\u00B0');
   });
 
   it('should parse more entities in attributes', () => {
-    const tkzr = new Tokenizer({ entities: entityMap });
+    const tkzr = Tokenizer.from({ entities: entityMap });
     const [tkn] = [...tkzr.tokenize('<x y="&deg;"/>')].filter(isAttrToken);
     assert.strictEqual(tkn.value, '\u00B0');
   });
 });
 
 function collector(html: string, entities: Entities) {
-  const tkzr = new Tokenizer({ entities });
+  const tkzr = Tokenizer.from({ entities });
   return [...tkzr.tokenize(html)]
     .map((tkn) => {
       return [...Object.values(tkn)].join(',');

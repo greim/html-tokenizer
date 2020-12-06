@@ -1,9 +1,79 @@
-const SELF_CLOSING_TAGS = new Set(['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+/**
+ * A list of tags which are self-closing in HTML.
+ */
+const SELF_CLOSING_TAGS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'command',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'keygen',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
 
-const CLOSED_BY_PARENTS = new Set(['p', 'li', 'dd', 'rb', 'rt', 'rtc', 'rp', 'optgroup', 'option', 'tbody', 'tfoot', 'tr', 'td', 'th']);
+/**
+ * A list of tags which are automatically closed
+ * when closing tags for their parents are encountered.
+ */
+const CLOSED_BY_PARENTS = new Set([
+  'p',
+  'li',
+  'dd',
+  'rb',
+  'rt',
+  'rtc',
+  'rp',
+  'optgroup',
+  'option',
+  'tbody',
+  'tfoot',
+  'tr',
+  'td',
+  'th',
+]);
 
-const CLOSED_BY_SIBLINGS: { [tag: string]: Set<string> | undefined } = Object.freeze({
-  p: new Set(['address', 'article', 'aside', 'blockquote', 'div', 'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul']),
+/**
+ * Tags which are closed when a start tag
+ * of another type ocurrs.
+ */
+const CLOSED_BY_SIBLINGS: { [tag: string]: Set<string> | undefined } = {
+  p: new Set([
+    'address',
+    'article',
+    'aside',
+    'blockquote',
+    'div',
+    'dl',
+    'fieldset',
+    'footer',
+    'form',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'header',
+    'hgroup',
+    'hr',
+    'main',
+    'nav',
+    'ol',
+    'p',
+    'pre',
+    'section',
+    'table',
+    'ul',
+  ]),
   li: new Set(['li']),
   dt: new Set(['dt', 'dd']),
   dd: new Set(['dt', 'dd']),
@@ -19,17 +89,23 @@ const CLOSED_BY_SIBLINGS: { [tag: string]: Set<string> | undefined } = Object.fr
   tr: new Set(['tr']),
   td: new Set(['td', 'th']),
   th: new Set(['td', 'th']),
-});
+};
 
-export function isSelfClosing(closee: string) {
-  return SELF_CLOSING_TAGS.has(closee);
+/**
+ * Determine whether a tag is a self-closing tag.
+ */
+export function isSelfClosing(tag: string): boolean {
+  return SELF_CLOSING_TAGS.has(tag);
 }
 
-export function isClosedBy(closee: string, closer: string) {
-  const lookup = CLOSED_BY_SIBLINGS[closee];
-  return lookup ? lookup.has(closer) : false;
+/**
+ * Determine whether a tag is closed by another tag
+ */
+export function isClosedBy(tag: string, otherTag: string): boolean {
+  return CLOSED_BY_SIBLINGS[tag]?.has(otherTag) ?? false;
 }
 
-export function isClosedByParent(closee: string) {
-  return CLOSED_BY_PARENTS.has(closee);
+/** Determine whether a tag is auto-closed by its parent. */
+export function isClosedByParent(tag: string): boolean {
+  return CLOSED_BY_PARENTS.has(tag);
 }

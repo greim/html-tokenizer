@@ -1,5 +1,8 @@
 import { Entities } from './types';
 
+/**
+ * A large set of possible entities for use during parsing.
+ */
 const entities: Entities = {
   'Tab': '\u0009',
   'NewLine': '\u000A',

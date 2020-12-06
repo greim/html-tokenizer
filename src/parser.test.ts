@@ -260,17 +260,9 @@ describe('html-tokenizer/parser', () => {
   });
 
   it('should pass through options', () => {
-    const parser = new Parser({ entities: entityMap });
+    const parser = Parser.from({ entities: entityMap });
     const [tkn] = [...parser.parse('&deg;')].filter(isTextToken);
     assert.strictEqual(tkn.text, '\u00B0');
-  });
-
-  it('should be extendable', () => {
-    class Parser2 extends Parser { foo() {} }
-    const parser = new Parser2();
-    const html = '<p>hello</p>';
-    const a = [...parser.parse(html)];
-    assert.ok(a.length > 0);
   });
 
   it('should have static', () => {
@@ -285,7 +277,7 @@ describe('html-tokenizer/parser', () => {
         .map(([k, v]) => ` ${k}="${v}"`)
         .join('');
     }
-    const parser = new Parser();
+    const parser = Parser.from({});
     const content = [];
 
     for (const tkn of parser.parse(WIKIPEDIA_PAGE)) {
@@ -312,7 +304,7 @@ describe('html-tokenizer/parser', () => {
 });
 
 function parserCollector(html: string) {
-  const parser = new Parser();
+  const parser = Parser.from({});
   return [...parser.parse(html)]
     .map((item) => {
       const vals = Object.values(item)

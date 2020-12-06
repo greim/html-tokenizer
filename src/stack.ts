@@ -1,3 +1,6 @@
+/**
+ * Mutable FILO stack object.
+ */
 export default class Stack<T> {
 
   private items: T[];

@@ -28,6 +28,10 @@ function getHandler(map: types.Entities): HandlerFn {
   return handler;
 }
 
+/**
+ * Replace entities within a chunk of text with the
+ * characters they represent.
+ */
 export default function deentify(text: string, map: types.Entities) {
   const handler = getHandler(map);
   return handler(text);

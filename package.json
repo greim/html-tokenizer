@@ -1,6 +1,6 @@
 {
   "name": "html-tokenizer",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/greim/html-tokenizer"
@@ -14,6 +14,7 @@
     "compile": "tsc",
     "test": "mocha \"./**/*.test.ts\" --require ts-node/register",
     "lint": "eslint --max-warnings 0 src/*.ts",
+    "check": "npm run lint && npm run compile && npm test",
     "clean": "rm -rf ./lib"
   },
   "keywords": [
@@ -22,8 +23,7 @@
     "tokenizer",
     "tokenization",
     "parser",
-    "parsing",
-    "event"
+    "parsing"
   ],
   "author": "gregreimer@gmail.com",
   "license": "MIT",

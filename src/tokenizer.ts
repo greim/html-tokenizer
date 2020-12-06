@@ -1,37 +1,135 @@
 /* eslint-disable no-cond-assign */
-import defaultEntities from './default-entities';
-import { Entities, Options } from './types';
+import DEFAULT_ENTITIES from './default-entities';
+import { Entities } from './types';
 import * as chunks from './chunks';
 import readAttribute from './read-attribute';
 import deentify from './deentify';
 
-export type TokenizerOptions = Options;
-export type Token = StartToken | OpeningTagToken | AttributeToken | OpeningTagEndToken | TextToken | CommentToken | ClosingTagToken | DoneToken;
-export interface StartToken { type: 'start' }
-export interface OpeningTagToken { type: 'opening-tag', name: string }
-export interface AttributeToken { type: 'attribute', name: string, value: string }
-export interface OpeningTagEndToken { type: 'opening-tag-end', name: string, token: '>' | '/>' }
-export interface TextToken { type: 'text', text: string }
-export interface CommentToken { type: 'comment', text: string }
-export interface ClosingTagToken { type: 'closing-tag', name: string }
-export interface DoneToken { type: 'done' }
+/**
+ * Options passed to a tokenizer on instantiation.
+ */
+export interface TokenizerOptions {
+  entities?: Entities;
+}
 
-type State = 'inTag' | 'inComment' | 'inText' | 'inScript';
+/**
+ * A token emitted during a tokenizing run.
+ */
+export type Token
+  = StartToken
+  | OpeningTagToken
+  | AttributeToken
+  | OpeningTagEndToken
+  | TextToken
+  | CommentToken
+  | ClosingTagToken
+  | DoneToken;
 
+/**
+ * Start of tokenizing run.
+ */
+export interface StartToken {
+  type: 'start';
+}
+
+/**
+ * Beginning of opening tag.
+ */
+export interface OpeningTagToken {
+  type: 'opening-tag';
+  name: string;
+}
+
+/**
+ * Attribute.
+ */
+export interface AttributeToken {
+  type: 'attribute';
+  name: string;
+  value: string;
+}
+
+/**
+ * End of opening tag.
+ */
+export interface OpeningTagEndToken {
+  type: 'opening-tag-end';
+  name: string;
+  token: '>' | '/>';
+}
+
+/**
+ * Text node chunk.
+ */
+export interface TextToken {
+  type: 'text';
+  text: string;
+}
+
+/**
+ * Comment.
+ */
+export interface CommentToken {
+  type: 'comment';
+  text: string;
+}
+
+/**
+ * Closing tag.
+ */
+export interface ClosingTagToken {
+  type: 'closing-tag';
+  name: string;
+}
+
+/**
+ * End of tokenizing run.
+ */
+export interface DoneToken {
+  type: 'done';
+}
+
+type State
+  = 'inTag'
+  | 'inComment'
+  | 'inText'
+  | 'inScript';
+
+/**
+ * A low-level tokenizer utility used by the HTML parser.
+ */
 export class Tokenizer {
 
   private readonly entityMap: Entities;
 
-  static tokenize(html: string, opts?: TokenizerOptions) {
+  /**
+   * Static method to tokenize HTML without instantiating a Tokenizer instance.
+   * @param html HTML string to tokenize.
+   * @param opts Optional tokenizer configuration options.
+   */
+  static tokenize(html: string, opts: TokenizerOptions = {}) {
     const tokenizer = new Tokenizer(opts);
     return tokenizer.tokenize(html);
   }
 
-  constructor(opts: TokenizerOptions = {}) {
-    this.entityMap = { ...defaultEntities, ...opts.entities };
+  /**
+   * Static factory to create a tokenizer.
+   * @param opts Tokenizer options.
+   */
+  static from(opts: TokenizerOptions) {
+    return new Tokenizer(opts);
+  }
+
+  private constructor(opts: TokenizerOptions) {
+    this.entityMap = { ...DEFAULT_ENTITIES, ...opts.entities };
     Object.freeze(this);
   }
 
+  /**
+   * Tokenize an HTML string. Returns an iterator, thus allowing
+   * tokens to be consumed via for/of or other iteration mechanisms.
+   * @param html HTML string to tokenize.
+   */
   *tokenize(html: string): IterableIterator<Token> {
     let currentText;
     for (const tkn of this._tokenize(html)) {

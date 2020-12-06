@@ -1,15 +1,69 @@
 import { Tokenizer } from './tokenizer';
-import { Options } from './types';
+import { Entities } from './types';
 import Stack from './stack';
 import { isClosedBy, isClosedByParent, isSelfClosing } from './util';
 
-export type ParserOptions = Options;
-export type ParseToken = OpenParseToken | TextParseToken | CommentParseToken | CloseParseToken;
-export interface OpenParseToken { type: 'open'; name: string; attributes: Attributes; selfClosing: boolean; }
-export interface TextParseToken { type: 'text'; text: string; }
-export interface CommentParseToken { type: 'comment'; text: string; }
-export interface CloseParseToken { type: 'close'; name: string; selfClosing: boolean; }
+/**
+ * Options passed to a parser on instantiation.
+ */
+export interface ParserOptions {
+  entities?: Entities;
+}
 
+/**
+ * A token emitted during a parsing run.
+ */
+export type ParseToken
+  = OpenParseToken
+  | TextParseToken
+  | CommentParseToken
+  | CloseParseToken;
+
+/**
+ * Opening tag.
+ */
+export interface OpenParseToken {
+  type: 'open';
+  /** Name of tag. */
+  name: string;
+  /** Set of attributes. */
+  attributes: Attributes;
+  /** Whether this tag is self-closing. */
+  selfClosing: boolean;
+}
+
+/**
+ * Text token.
+ */
+export interface TextParseToken {
+  type: 'text';
+  /** The text content. */
+  text: string;
+}
+
+/**
+ * Comment.
+ */
+export interface CommentParseToken {
+  type: 'comment';
+  /** The comment content. */
+  text: string;
+}
+
+/**
+ * Closing tag.
+ */
+export interface CloseParseToken {
+  type: 'close';
+  /** Name of the tag. */
+  name: string;
+  /** Whether tag was self closing. */
+  selfClosing: boolean;
+}
+
+/**
+ * A set of attributes.
+ */
 export interface Attributes {
   [attrName: string]: string;
 }
@@ -19,20 +73,41 @@ interface PendingTag {
   attributes: Attributes;
 }
 
+/**
+ * An object capable of parsing HTML.
+ */
 export class Parser {
 
   private readonly tokenizer: Tokenizer;
 
+  /**
+   * Static method to parse HTML without instantiating a Parser instance.
+   * @param html HTML string to parse.
+   * @param opts Optional parser configuration options.
+   */
   static parse(html: string, opts: ParserOptions = {}) {
     const parser = new Parser(opts);
     return parser.parse(html);
   }
 
-  constructor(opts: ParserOptions = {}) {
-    this.tokenizer = new Tokenizer(opts);
+  /**
+   * Static factory to create a parser.
+   * @param opts Parser options.
+   */
+  static from(opts: ParserOptions) {
+    return new Parser(opts);
+  }
+
+  private constructor(opts: ParserOptions) {
+    this.tokenizer = Tokenizer.from(opts);
     Object.freeze(this);
   }
 
+  /**
+   * Parse an HTML string. Returns an iterator, thus allowing parse
+   * tokens to be consumed via for/of or other iteration mechanisms.
+   * @param html HTML string to parse.
+   */
   *parse(html: string): IterableIterator<ParseToken> {
     const tkzr = this.tokenizer;
     const stack = new Stack<PendingTag>();
