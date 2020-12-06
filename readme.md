@@ -1,45 +1,68 @@
-# HTML Tokenizer
+# HTML Tokenizer (and Parser)
 
-A small, fast, iterator-driven, fault-tolerant, html or xml tokenizer that works in node but which is mainly intended as a lightweight client-side parser for small HTML snippets.
-You input a string which is supposed to contain HTML, and it outputs descriptions of what things it finds.
+HTML tokenizer and parser!
+
+- Small
+- Synchronous
+- Fault-tolerant
+- Zero-dependencies
+- Runs great in the browser
+- Written in TypeScript
+
+A small, blazing-fast, iterator-based, fault-tolerant, HTML tokenizer and parser. Works in Node or in browsers. You pass it a string containing markup, and it returns an iterator of things it finds.
+
+This lib is written in TypeScript, but ships plain-old ES6 JavaScript along with TS definition files. It can therefore be used normally like any other JS dependency. If used in a TypeScript project, nothing changes except you get the added benefit of type safety and IDE integration.
 
 ```
 npm install html-tokenizer
 ```
 
-## Tokenizer
+## Tokenizer or Parser?
 
-A tokenizer tells you things such as "here's an attribute" or "here's an opening tag," however these may or may not reflect well-formed HTML, depending on the input document.
-For example the input `"<foo <foo"` will output two `opening-tag` items in a row.
-If that bothers you, then what you probably want is a parser, not a tokenizer, so keep scrolling down.
+This project contains a tokenizer and a parser, both of which iterate a sequence of things from a piece of markup. What's the difference? A tokenizer enumerates low-level syntax units. A parser (taking those units as input) enumerates high-level structure of the markup. Therefore, you likely want the parser, not the tokenizer, unless you're looking to implement your own parser.
+
+## Can this parse XML?
+
+In some cases, yes. An HTML parser such as this works very hard to make sense out of even the most garbled input, so it can't be a standards-compliant XML parser, since that it won't throw at the first error. This also doesn't support more esoteric features of XML like processing instructions.
+
+## Tokenizer Example
 
 ```js
-const Tokenizer = require('html-tokenizer');
-const itr = Tokenizer.tokenize('<p>Hello</p>');
-for (const token of itr) {
-  const { type, ...data } = token;
-  if (type === 'opening-tag') {
-    console.log(`found a <${data.name}> tag`);
-  }
-}
+import Tokenizer from 'html-tokenizer';
+
+const html = '<p class="foo">Hello<br/></p>';
+
+const tokens = [...Tokenizer.tokenize(html)];
+
+assert.deepEqual(tokens, [
+  { type: 'start' },
+  { type: 'opening-tag', name: 'p' },
+  { type: 'attribute', name: 'class', value: 'foo' },
+  { type: 'opening-tag-end', name: 'p', token: '>' },
+  { type: 'text', text: 'Hello' },
+  { type: 'opening-tag', name: 'br' },
+  { type: 'opening-tag-end', name: 'br', token: '/>' },
+  { type: 'closing-tag', name: 'p' },
+  { type: 'done' }
+]);
 ```
 
-## Parser
-
-An HTML parser is included in the project which you can require separately.
-Unlike the tokenizer, it seeks out structure in the document.
-Malformed input will generally be output as text in these cases, rather than the parser throwing an error.
-If that bothers you, you probably want to use a different lib.
+## Parser Example
 
 ```js
-const Parser = require('html-tokenizer/parser')
-const itr = Parser.parse('<p>Hello</p>');
-for (const event of itr) {
-  const { type, ...data } = event;
-  if (type === 'open') {
-    console.log(`found a <${data.name}> tag`);
-  }
-}
+import Parser from 'html-tokenizer/parser';
+
+const html = '<p class="foo">Hello<br/></p>';
+
+const parseTokens = [...Parser.parse(html)];
+
+assert.deepEqual(parseTokens, [
+  { type: 'open', name: 'p', attributes: { class: 'foo' }, selfClosing: false },
+  { type: 'text', text: 'Hello' },
+  { type: 'open', name: 'br', attributes: {}, selfClosing: true },
+  { type: 'close', name: 'br', selfClosing: true },
+  { type: 'close', name: 'p', selfClosing: false },
+]);
 ```
 
 # API
@@ -49,97 +72,98 @@ for (const event of itr) {
 ### `new Tokenizer(opts)`
 
 ```js
-const Tokenizer = require('html-tokenizer');
-const tokenizer = new Tokenizer({
-  entities: { copy: '\u00A9' }
-});
+// using no-arg constructor
+import Tokenizer from 'html-tokenizer';
+const tokenizer = new Tokenizer();
+
+// with custom entity support
+import Tokenizer from 'html-tokenizer';
+const entities = { copy: '\u00A9' };
+const tokenizer = new Tokenizer({ entities });
+
+// with exhaustive entity support
+import Tokenizer from 'html-tokenizer';
+import entities from 'html-tokenizer/entities';
+const tokenizer = new Tokenizer({ entities });
 ```
 
-The only currently supported constructor option is an `entities` object which maps HTML entities to unicode characters.
-This is optional and provides a way to expand the set of entities supported by default.
-By default only numeric codes are supported, plus a small subset of textual ones. This small subset is defined in `default-entity-map.json`.
+`entities` is an optional object which maps HTML entities to unicode characters. This provides a way to expand the set of default-supported entities, which only include numeric codes like `&#160;`, plus the most common textual ones such as `&gt;` and `&nbsp;`. Exhaustive entity support should be used with caution in client-size apps, since the entities file is quite large.
 
 ### `Tokenizer#tokenize(html)`
 
 ```js
-const iterator = tokenizer.tokenize(html)
+import Tokenizer from 'html-tokenizer';
+const tokenizer = new Tokenizer();
+for (const token of tokenizer.tokenize(html)) {
+  switch (token.type) {
+    case 'opening-tag': ...
+    case 'opening-tag-end': ...
+    // etc
+  }
+}
 ```
 
-Returns an iterator.
-`html` is a string.
-Can be called arbitrarily many times per instance.
-Items generated are objects with a `type` property.
-Other data will be present on the item depending on the type:
+Token objects:
 
- * `{ type: 'start' }`                        - Generated at the beginning.
- * `{ type: 'opening-tag', name }`            - Beginning of opening tag, like `<foo`.
- * `{ type: 'attribute', name, value }`       - Only generated between "opening-tag" and "opening-tag-end" events.
+ * `{ type: 'start' }` - Generated at the beginning.
+ * `{ type: 'opening-tag', name }` - Beginning of opening tag, like `<foo`.
+ * `{ type: 'attribute', name, value }` - Only generated between "opening-tag" and "opening-tag-end" events.
  * `{ type: 'opening-tag-end', name, token }` - Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
- * `{ type: 'text', text }`                   - Text.
- * `{ type: 'comment', text }`                - Comment text.
- * `{ type: 'closing-tag', name }`            - Closing tag, like `</foo>`.
- * `{ type: 'done' }`                         - Generated at the end.
+ * `{ type: 'text', text }` - Text.
+ * `{ type: 'comment', text }` - Comment text.
+ * `{ type: 'closing-tag', name }` - Closing tag, like `</foo>`.
+ * `{ type: 'done' }` - Generated at the end.
 
 ### `Tokenizer.tokenize(html, opts)`
 
-```js
-const iterator = Tokenizer.tokenize(html, opts);
-```
-
-Static convenience method does the same thing as above, without needing to instantiate a tokenizer.
+This is a static convenience method so you can skip instantiating a tokenizer. An instance is created internally and `opts` is passed to its constructor.
 
 ## Parser API
 
 ### `new Parser(opts)`
 
 ```js
-const Parser = require('html-tokenizer/parser');
-const parser = new Parser({
-  entities: { copy: '\u00A9', ... }
-});
+// using no-arg constructor
+import Parser from 'html-tokenizer/parser';
+const parser = new Parser();
+
+// with custom entity support
+import Parser from 'html-tokenizer/parser';
+const entities = { copy: '\u00A9' };
+const parser = new Parser({ entities });
+
+// with exhaustive entity support
+import Parser from 'html-tokenizer/parser';
+import entities from 'html-tokenizer/entities';
+const parser = new Parser({ entities });
 ```
 
-The only currently supported constructor option is an `entities` object.
-It's passed directly to the underlying tokenizer (see above).
+Constructor options are identical to the `Tokenizer` API. See note on `entities` above.
 
 ### `Parser#parse(html)`
 
 ```js
-const iterator = parser.parse(html);
+import Parser from 'html-tokenizer/parser';
+const parser = new Parser();
+for (const parseToken of parser.parse(html)) {
+  switch (parseToken.type) {
+    case 'open': ...
+    case 'text': ...
+    // etc
+  }
+}
 ```
 
-Returns an iterator.
-`html` is a string.
-Can be called arbitrarily many times per instance.
-Items generated are objects with a `type` property.
-Other data will be present on the item depending on the type:
+Accepts a string and returns an iterator of parse-token objects.
 
- * `{ type: 'start' }`                               - Generated at beginning.
  * `{ type: 'open', name, attributes, selfClosing }` - Opening tag. `selfClosing` will be true if this tag self-closes.
- * `{ type: 'text', text }`                          - Text.
- * `{ type: 'comment', text }`                       - Comment text.
- * `{ type: 'close', name, selfClosing }`            - Closing tag. `selfClosing` will be true if this was a self-closing tag.
- * `{ type: 'done' }`                                - Generated at end.
+ * `{ type: 'text', text }` - Text.
+ * `{ type: 'comment', text }` - Comment text.
+ * `{ type: 'close', name, selfClosing }` - Closing tag. `selfClosing` will be true if this was a self-closing tag.
 
 ### `Parser.parse(html, opts)`
 
-```js
-const iterator = Parser.parse(html, opts);
-```
-
-Static convenience method does the same as above, avoiding need to instantiate a parser.
-
-## Exhaustive Entity Support
-
-`Tokenizer()` and `Parser()` take an `options.entities` object in order to optionally support a broad set of HTML textual character entities, rather than the small set of default ones.
-Exhaustive support can be added by requiring the (large-ish) `entity-map.json` file.
-Note that numeric entities such as `&#160;` are supported by default; the above only applies for textual ones such as `&deg;`.
-
-```js
-const Parser = require('html-tokenizer/parser');
-const entities = require('html-tokenizer/entity-map');
-const parser = new Parser({ entities });
-```
+This is a static convenience method so you can skip instantiating a parser. An instance is created internally and `opts` is passed to its constructor.
 
 ## Other Notes
 
@@ -150,7 +174,7 @@ const parser = new Parser({ entities });
  * Performs best on clean markup.
  * Never intentionally throws.
  * Tests pass on Node.js 6.x and above; fail on 5.x and below due to syntax issues.
- * Performance gets better and better going from Node.js 6.x => 10.x.
+ * Performance gets better going from Node.js 6.x => 10.x.
 
 ## Changelog
 

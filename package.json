@@ -11,7 +11,8 @@
   "description": "Small, fast, event-driven, fault-tolerant html tokenizer. Works in node or browsers.",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/.bin/mocha --harmony"
+    "compile": "tsc",
+    "test": "mocha \"./**/*.test.ts\" --require ts-node/register"
   },
   "keywords": [
     "html",
@@ -26,8 +27,12 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "@types/cheerio": "^0.22.11",
+    "@types/mocha": "^5.2.7",
     "cheerio": "^1.0.0-rc.2",
     "eslint": "^5.5.0",
-    "mocha": "^2.2.5"
+    "mocha": "^6.1.4",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
   }
 }
