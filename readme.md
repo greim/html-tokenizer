@@ -1,16 +1,14 @@
 # HTML Tokenizer and Parser
 
-## Some background
+## About tokenizers and parsers
 
-What's a tokenizer, what's a parser, and what's the difference, you ask?
+What's a tokenizer, what's a parser, and what's the difference?
 
-A tokenizer scans input from start to finish, producing a series of tokens. A parser does the same thing, but goes farther by organizing those tokens into a well-formed output.
+This lib contains an HTML tokenizer which takes HTML input and breaks it into tokens representing opening tags, attributes, etc. It blindly reports those tokens to you, without checking whether the sequence is a well-formed HTML document.
 
-This lib provides an HTML tokenizer which takes HTML input and emits different tokens representing things like opening tags, attributes, or closing tags. But you can't trust the token sequence to reflect a well-formed document.
+This lib also provides an HTML parser. It behaves much like a tokenizer, but goes farther, ensuring the token sequence is well-formed, tags are balanced, etc.
 
-This lib also provides an HTML parser. It behaves like a tokenizer, but goes farther, ensuring output is well-formed. For example, if it emits opening tags, but reaches the end of the input without finding closing tags, it detects that condition and emits the missing closing tags to ensure the output is balanced.
-
-Why does this lib provide both a tokenizer and a parser? I expect most people would find the parser useful rather than the tokenizer, but building the tokenizer was a necessary step, since the parser uses it internally. So if in doubt, use the parser, ignore the tokenizer.
+Why both a tokenizer and a parser? Long story short, use the parser, ignore the tokenizer. Building the tokenizer was a necessary step, since the parser uses it internally.
 
 ## This HTML parser is...
 
