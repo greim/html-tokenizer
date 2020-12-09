@@ -1,23 +1,30 @@
-# HTML Tokenizer (and Parser)
+# HTML Tokenizer and Parser
 
-HTML tokenizer and parser!
+## Some background
+
+What's a tokenizer, what's a parser, and what's the difference, you ask?
+
+A tokenizer scans input from start to finish, producing a series of tokens. A parser does the same thing, but goes farther by organizing those tokens into a well-formed output.
+
+This lib provides an HTML tokenizer which takes HTML input and emits different tokens representing things like opening tags, attributes, or closing tags. But you can't trust the token sequence to reflect a well-formed document.
+
+This lib also provides an HTML parser. It behaves like a tokenizer, but goes farther, ensuring output is well-formed. For example, if it emits opening tags, but reaches the end of the input without finding closing tags, it detects that condition and emits the missing closing tags to ensure the output is balanced.
+
+Why does this lib provide both a tokenizer and a parser? I expect most people would find the parser useful rather than the tokenizer, but building the tokenizer was a necessary step, since the parser uses it internally. So if in doubt, use the parser, ignore the tokenizer.
+
+## This HTML parser is...
 
 - Small
 - Synchronous
+- Iterator-based
 - Fault-tolerant
 - Zero-dependencies
-- Runs in the browser
+- Runs in node or browsers
 - Written in TypeScript
-
-A small, fast, iterator-based, fault-tolerant, HTML tokenizer and parser. Works in Node or in browsers. You pass it a string containing markup, and it iterator over things it finds.
 
 ```
 npm install html-tokenizer
 ```
-
-## Tokenizer or Parser?
-
-This project contains a tokenizer and a parser, both of which iterate a sequence of things from a piece of markup. What's the difference? The tokenizer enumerates low-level syntax units. The parser enumerates higher-level markup structure. Therefore, you probably want the parser, not the tokenizer, unless you're looking to implement your own parser.
 
 ## Can this parse XML?
 
@@ -75,7 +82,9 @@ assert.deepEqual(tokens, [
 
 ## Parser API
 
-### `Parser.from(opts)`
+### `Parser.from(opts)` (static factory)
+
+This is how to create parser instances.
 
 ```ts
 // using empty args
@@ -95,12 +104,14 @@ const parser = Parser.from({ entities });
 
 `entities` is an optional object which maps HTML entities to unicode characters. This provides a way to expand the set of default-supported entities, which only include numeric codes like `&#160;`, plus the most common textual ones such as `&gt;` and `&nbsp;`. Exhaustive entity support should be used with caution in client-size apps, since the entities file is quite large.
 
-### `Parser#parse(html)`
+### `Parser#parse(html)` (instance method)
+
+This is an instance method to parse HTML.
 
 ```ts
 import Parser from 'html-tokenizer/parser';
-for (const parseToken of Parser.parse(html, {})) {
-  switch (parseToken.type) {
+for (const token of Parser.parse(html, {})) {
+  switch (token.type) {
     case 'open': ...
     case 'text': ...
     // etc
@@ -108,20 +119,27 @@ for (const parseToken of Parser.parse(html, {})) {
 }
 ```
 
-Accepts a string and returns an iterator of parse-token objects.
+Accepts a string and returns an iterator of parse token objects. Every token has a `type` property. Depending on the type, the token will have different properties.
 
-- `{ type: 'open', name, attributes, selfClosing }` - Opening tag. `selfClosing` will be true if this tag self-closes.
-- `{ type: 'text', text }` - Text.
-- `{ type: 'comment', text }` - Comment text.
-- `{ type: 'close', name, selfClosing }` - Closing tag. `selfClosing` will be true if this was a self-closing tag.
+- `token.type === 'open'` Opening tag.
+  - `token.name` Tag name.
+  - `token.attributes` Attributes key/value object.
+  - `token.selfClosing` Boolean. True if it's a self-closing tag like `<br/>`.
+- `token.type === 'text'` Text node.
+  - `token.text` Text node content.
+- `token.type === 'comment'` Comment node.
+  - `token.text` Comment node content.
+- `token.type === 'close'` Closing tag.
+  - `token.name` Tag name.
+  - `token.selfClosing` Boolean. True if it's a self-closing tag like `<br/>`.
 
-### `Parser.parse(html, opts)`
+### `Parser.parse(html, opts)` (static method)
 
 This is a static convenience method so you can skip instantiating a parser. An instance is created internally and `opts` is passed to its constructor.
 
 ## Tokenizer API
 
-### `Tokenizer.from(opts)`
+### `Tokenizer.from(opts)` (static factory)
 
 ```ts
 // using empty options
@@ -141,7 +159,9 @@ const tokenizer = Tokenizer.from({ entities });
 
 `entities` is an optional object which maps HTML entities to unicode characters. This provides a way to expand the set of default-supported entities, which only include numeric codes like `&#160;`, plus the most common textual ones such as `&gt;` and `&nbsp;`. Exhaustive entity support should be used with caution in client-size apps, since the entities file is quite large.
 
-### `Tokenizer#tokenize(html, opts)`
+### `Tokenizer#tokenize(html, opts)` (instance method)
+
+This is an instance method to tokenize HTML.
 
 ```ts
 import { Tokenizer } from 'html-tokenizer';
@@ -154,18 +174,26 @@ for (const token of Tokenizer.tokenize(html, {})) {
 }
 ```
 
-Token objects:
+It accepts a string and returns an iterator of token objects. Every token has a `type` property. Depending on the type, the token will have different properties.
 
-- `{ type: 'start' }` - Generated at the beginning.
-- `{ type: 'opening-tag', name }` - Beginning of opening tag, like `<foo`.
-- `{ type: 'attribute', name, value }` - Only generated between "opening-tag" and "opening-tag-end" events.
-- `{ type: 'opening-tag-end', name, token }` - Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
-- `{ type: 'text', text }` - Text.
-- `{ type: 'comment', text }` - Comment text.
-- `{ type: 'closing-tag', name }` - Closing tag, like `</foo>`.
-- `{ type: 'done' }` - Generated at the end.
+- `token.type === 'start'` Generated once at the beginning.
+- `token.type === 'opening-tag'` Beginning of opening tag, like `<foo`.
+  - `token.name` Tag name.
+- `token.type === 'attribute'` Only generated between "opening-tag" and "opening-tag-end" events.
+  - `token.name` Attribute name.
+  - `token.value` Attribute value.
+- `token.type === 'opening-tag-end'` Closing bracket of opening tag. `token` will either be `">"` or `"/>"`.
+  - `token.name` Tag name.
+  - `token.token` Either `/>` or `>`.
+- `token.type === 'text'` Text node fragment.
+  - `token.text` Text content.
+- `token.type === 'comment'` Comment.
+  - `token.text` Comment content.
+- `token.type === 'closing-tag'` Closing tag, like `</foo>`.
+  - `token.name` Tag name.
+- `token.type === 'done'` Generated once at the end.
 
-### `Tokenizer.tokenize(html, opts)`
+### `Tokenizer.tokenize(html, opts)` (static method)
 
 This is a static convenience method so you can skip instantiating a tokenizer. An instance is created internally and `opts` is passed to its constructor.
 
