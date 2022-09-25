@@ -26,16 +26,26 @@ export type Token
   | DoneToken;
 
 /**
+ * Base token with position
+ */
+export interface PositionedToken {
+  position: {
+    begin: number
+    end: number
+  }
+}
+
+/**
  * Start of tokenizing run.
  */
-export interface StartToken {
+export interface StartToken extends PositionedToken {
   type: 'start';
 }
 
 /**
  * Beginning of opening tag.
  */
-export interface OpeningTagToken {
+export interface OpeningTagToken extends PositionedToken {
   type: 'opening-tag';
   name: string;
 }
@@ -43,7 +53,7 @@ export interface OpeningTagToken {
 /**
  * Attribute.
  */
-export interface AttributeToken {
+export interface AttributeToken extends PositionedToken {
   type: 'attribute';
   name: string;
   value: string;
@@ -52,7 +62,7 @@ export interface AttributeToken {
 /**
  * End of opening tag.
  */
-export interface OpeningTagEndToken {
+export interface OpeningTagEndToken extends PositionedToken {
   type: 'opening-tag-end';
   name: string;
   token: '>' | '/>';
@@ -61,7 +71,7 @@ export interface OpeningTagEndToken {
 /**
  * Text node chunk.
  */
-export interface TextToken {
+export interface TextToken extends PositionedToken {
   type: 'text';
   text: string;
 }
@@ -69,7 +79,7 @@ export interface TextToken {
 /**
  * Comment.
  */
-export interface CommentToken {
+export interface CommentToken extends PositionedToken {
   type: 'comment';
   text: string;
 }
@@ -77,7 +87,7 @@ export interface CommentToken {
 /**
  * Closing tag.
  */
-export interface ClosingTagToken {
+export interface ClosingTagToken extends PositionedToken {
   type: 'closing-tag';
   name: string;
 }
@@ -85,7 +95,7 @@ export interface ClosingTagToken {
 /**
  * End of tokenizing run.
  */
-export interface DoneToken {
+export interface DoneToken extends PositionedToken {
   type: 'done';
 }
 
@@ -143,7 +153,7 @@ export class Tokenizer {
       } else {
         if (currentText) {
           const deentText = deentify(currentText, this.entityMap);
-          yield { type: 'text', text: deentText };
+          yield { position: tkn.position, type: 'text', text: deentText };
           currentText = undefined;
         }
         yield tkn;
@@ -152,50 +162,52 @@ export class Tokenizer {
   }
 
   private *_tokenize(html: string): IterableIterator<Token> {
-    yield { type: 'start' };
     let pos = 0;
+    let positionBegin = pos;
     let state: State = 'inText';
     let currentTag = '';
     let next;
+    yield { position: { begin: positionBegin, end: pos }, type: 'start' };
     while (pos < html.length) {
+      positionBegin = pos;
       if (state === 'inText') {
         const isBracket = html.charAt(pos) === '<'; // cheap pre-emptive check
         if (isBracket && (next = chunks.getOpeningTag(html, pos))) {
           pos += next.length;
           currentTag = next.match[2];
-          yield { type: 'opening-tag', name: currentTag };
+          yield { position: { begin: positionBegin, end: pos }, type: 'opening-tag', name: currentTag };
           state = 'inTag';
         } else if (isBracket && (next = chunks.getClosingTag(html, pos))) {
           pos += next.length;
-          yield { type: 'closing-tag', name: next.match[2] };
+          yield { position: { begin: positionBegin, end: pos }, type: 'closing-tag', name: next.match[2] };
         } else if (isBracket && (next = chunks.getCommentOpen(html, pos))) {
           pos += next.length;
           state = 'inComment';
         } else if (next = chunks.getText(html, pos)) {
           pos += next.length;
-          yield { type: 'text', text: next.match[1] };
+          yield { position: { begin: positionBegin, end: pos }, type: 'text', text: next.match[1] };
         } else {
           const text = html.substring(pos, pos + 1);
           pos += 1;
-          yield { type: 'text', text };
+          yield { position: { begin: positionBegin, end: pos }, type: 'text', text };
         }
       } else if (state === 'inComment') {
         if (next = chunks.getComment(html, pos)) {
           pos += next.length;
-          yield { type: 'comment', text: next.match[2] };
+          yield { position: { begin: positionBegin, end: pos }, type: 'comment', text: next.match[2] };
           state = 'inText';
         } else {
-          yield { type: 'comment', text: html.substring(pos) };
+          yield { position: { begin: positionBegin, end: pos }, type: 'comment', text: html.substring(pos) };
           break;
         }
       } else if (state === 'inScript') {
         if (next = chunks.getScript(html, pos)) {
           pos += next.length;
-          yield { type: 'text', text: next.match[2] };
-          yield { type: 'closing-tag', name: 'script' };
+          yield { position: { begin: positionBegin, end: pos }, type: 'text', text: next.match[2] };
+          yield { position: { begin: positionBegin, end: pos }, type: 'closing-tag', name: 'script' };
           state = 'inText';
         } else {
-          yield { type: 'text', text: html.substring(pos) };
+          yield { position: { begin: positionBegin, end: pos }, type: 'text', text: html.substring(pos) };
           break;
         }
       } else if (state === 'inTag') {
@@ -206,14 +218,14 @@ export class Tokenizer {
           if (hasVal) {
             const read = readAttribute(html, pos);
             pos += read.length;
-            yield { type: 'attribute', name, value: deentify(read.value, this.entityMap) };
+            yield { position: { begin: positionBegin, end: pos }, type: 'attribute', name, value: deentify(read.value, this.entityMap) };
           } else {
-            yield { type: 'attribute', name, value: '' };
+            yield { position: { begin: positionBegin, end: pos }, type: 'attribute', name, value: '' };
           }
         } else if (next = chunks.getTagEnd(html, pos)) {
           pos += next.length;
           const token = next.match[2] as '>' | '/>';
-          yield { type: 'opening-tag-end', name: currentTag, token };
+          yield { position: { begin: positionBegin, end: pos }, type: 'opening-tag-end', name: currentTag, token };
           state = currentTag === 'script' ? 'inScript' : 'inText';
         } else {
           state = 'inText';
@@ -222,6 +234,6 @@ export class Tokenizer {
         break;
       }
     }
-    yield { type: 'done' };
+    yield { position: { begin: positionBegin, end: pos }, type: 'done' };
   }
 }

@@ -1,7 +1,7 @@
 /**
  * Opening tag chunker function.
  */
-export const getOpeningTag = chunker(/(<(([a-z0-9-]+:)?[a-z0-9-]+))/ig);
+export const getOpeningTag = chunker(/(<(([a-z0-9-.]+:)?[a-z0-9-.]+))/ig);
 
 /**
  * Text node chunker function.
@@ -11,7 +11,7 @@ export const getText = chunker(/([^<]+)/g);
 /**
  * Closing tag chunker function.
  */
-export const getClosingTag = chunker(/(<\/(([a-z0-9-]+:)?[a-z0-9-]+)>)/ig);
+export const getClosingTag = chunker(/(<\/(([a-z0-9-.]+:)?[a-z0-9-.]+)>)/ig);
 
 /**
  * Comment open chunker function.
