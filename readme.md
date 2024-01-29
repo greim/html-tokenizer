@@ -40,15 +40,19 @@ for (const token of Parser.parse(html)) {
     case 'open': {
       console.log(`Opening tag: ${token.name}`);
       console.log('Attributes:', token.attributes);
+      break;
     }
     case 'text': {
       console.log(`Text node: ${token.text}`);
+      break;
     }
     case 'close': {
       console.log(`Closing tag: ${token.name}`);
+      break;
     }
     case 'comment': {
       console.log(`Comment: ${token.text}`);
+      break;
     }
   }
 }
