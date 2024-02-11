@@ -1,7 +1,7 @@
 {
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.fixAll.markDown": false
-  },
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.markDown": "never"
+},
   "eslint.run": "onType"
 }
